@@ -1,69 +1,185 @@
-# React + TypeScript + Vite
+fastlane documentation
+----
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Mobile Timer - Build Documentation
 
-Currently, two official plugins are available:
+This is a mobile timer application built with React, TypeScript, and Capacitor.js for cross-platform mobile deployment.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+# Installation
 
-## Expanding the ESLint configuration
+## Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### For iOS Development (macOS only)
+Make sure you have the latest version of the Xcode command line tools installed:
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+xcode-select --install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### For Android Development
+Install Android Studio and set up the Android SDK:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. **Download Android Studio** from [https://developer.android.com/studio](https://developer.android.com/studio)
+2. **Install Android Studio** and run the setup wizard
+3. **Install Android SDK** - The setup wizard will guide you through installing:
+   - Android SDK
+   - Android SDK Platform
+   - Android Virtual Device (AVD)
+4. **Set environment variables** (add to your shell profile):
+   ```sh
+   # Windows (add to System Environment Variables)
+   ANDROID_HOME=C:\Users\%USERNAME%\AppData\Local\Android\Sdk
+   ANDROID_SDK_ROOT=C:\Users\%USERNAME%\AppData\Local\Android\Sdk
+   ANDROID_SDK_ROOT=C:\Users\%USERNAME%\AppData\Local\Android\Sdk
+   JAVA_HOME=C:\Program Files\Java\jdk-%VERSION%
+   
+   # macOS/Linux (add to ~/.bashrc, ~/.zshrc, or equivalent)
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export ANDROID_SDK_ROOT=$HOME/Library/Android/sdk
+   export JAVA_HOME=$HOME/Library/Java/JavaVirtualMachines/jdk-$VERSION.jdk/Contents/Home
+   export PATH=$PATH:$ANDROID_HOME/emulator
+   export PATH=$PATH:$ANDROID_HOME/tools
+   export PATH=$PATH:$ANDROID_HOME/tools/bin
+   export PATH=$PATH:$ANDROID_HOME/platform-tools
+   ```
+5. **Accept Android SDK licenses**:
+   ```sh
+   cd $ANDROID_HOME/tools/bin
+   ./sdkmanager --licenses
+   ```
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### For Fastlane
+For _fastlane_ installation instructions, see [Installing _fastlane_](https://docs.fastlane.tools/#installing-fastlane)
+
+## Quick Start
+
+### Using npm scripts (Recommended)
+```sh
+# Build for Android (includes React build + Capacitor sync + Fastlane build)
+npm run build:android
+
+# Build for iOS (includes React build + Capacitor sync + Fastlane build)
+npm run build:ios
 ```
+
+### Using Fastlane directly
+```sh
+# Cross-platform builds
+fastlane build_all    # Build debug versions for both platforms
+fastlane release_all  # Build release versions for both platforms
+fastlane clean        # Clean all build artifacts
+
+# Platform-specific builds
+fastlane ios build           # iOS debug build
+fastlane ios release         # iOS App Store build
+fastlane android build       # Android debug APK
+fastlane android release     # Android release AAB
+fastlane android release_apk # Android release APK
+```
+
+# Build Process
+
+The build process includes:
+1. **React Build** - Compiles TypeScript and builds the web app (`npm run build`)
+2. **Capacitor Sync** - Copies web assets to native projects (`npx cap sync`)
+3. **Native Build** - Uses Fastlane to build platform-specific packages
+
+# Build Artifacts
+
+All build artifacts are saved with dynamic naming including:
+- Version number (based on git commit count)
+- Git commit hash
+- Build timestamp
+- Platform and build type
+
+**Output locations:**
+- iOS: `fastlane/build/ios/`
+- Android: `fastlane/build/android/`
+
+**Example artifact names:**
+- `MobileTimer-ios-debug-v1.0.23-a1b2c3d-20250627_1430.ipa`
+- `MobileTimer-android-release-v1.0.23-a1b2c3d-20250627_1430.aab`
+
+# Available Actions
+
+### build_all
+
+```sh
+[bundle exec] fastlane build_all
+```
+
+Build both iOS and Android apps for development
+
+### release_all
+
+```sh
+[bundle exec] fastlane release_all
+```
+
+Build both iOS and Android apps for release
+
+### clean
+
+```sh
+[bundle exec] fastlane clean
+```
+
+Clean all build artifacts
+
+----
+
+
+## iOS
+
+### ios build
+
+```sh
+[bundle exec] fastlane ios build
+```
+
+Build iOS app for development
+
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+Build iOS app for App Store
+
+----
+
+
+## Android
+
+### android build
+
+```sh
+[bundle exec] fastlane android build
+```
+
+Build Android APK for development
+
+### android release
+
+```sh
+[bundle exec] fastlane android release
+```
+
+Build Android AAB for release
+
+### android release_apk
+
+```sh
+[bundle exec] fastlane android release_apk
+```
+
+Build Android APK for release
+
+----
+
+This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
+
+More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).
+
+The documentation of _fastlane_ can be found on [docs.fastlane.tools](https://docs.fastlane.tools).
