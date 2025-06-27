@@ -40,6 +40,11 @@ platform :ios do
     # Build the React app
     sh("cd .. && npm run build")
     
+    # Initialize Capacitor if not already done
+    unless File.exist?("ios/App/App.xcworkspace")
+      sh("cd .. && npx cap add ios")
+    end
+    
     # Sync Capacitor
     sh("cd .. && npx cap sync ios")
     
@@ -62,6 +67,11 @@ platform :ios do
   lane :release do
     # Build the React app
     sh("cd .. && npm run build")
+
+    # Initialize Capacitor if not already done
+    unless File.exist?("ios/App/App.xcworkspace")
+      sh("cd .. && npx cap add ios")
+    end
     
     # Sync Capacitor
     sh("cd .. && npx cap sync ios")
@@ -87,6 +97,11 @@ platform :android do
   lane :build do
     # Build the React app
     sh("cd .. && npm run build")
+    
+    # Initialize Capacitor if not already done
+    unless File.exist?("android/app/src/main/AndroidManifest.xml")
+      sh("cd .. && npx cap add android")
+    end
     
     # Sync Capacitor
     sh("cd .. && npx cap sync android")
@@ -114,6 +129,11 @@ platform :android do
   lane :release do
     # Build the React app
     sh("cd .. && npm run build")
+
+    # Initialize Capacitor if not already done
+    unless File.exist?("android/app/src/main/AndroidManifest.xml")
+      sh("cd .. && npx cap add android")
+    end
     
     # Sync Capacitor
     sh("cd .. && npx cap sync android")
@@ -141,6 +161,11 @@ platform :android do
   lane :release_apk do
     # Build the React app
     sh("cd .. && npm run build")
+
+    # Initialize Capacitor if not already done
+    unless File.exist?("android/app/src/main/AndroidManifest.xml")
+      sh("cd .. && npx cap add android")
+    end
     
     # Sync Capacitor
     sh("cd .. && npx cap sync android")
