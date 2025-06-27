@@ -1,0 +1,125 @@
+.stopwatch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  max-width: 400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.time-display {
+  font-size: 3.5rem;
+  font-weight: 300;
+  font-family: 'Courier New', monospace;
+  color: #2c3e50;
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 280px;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.control-btn {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.control-btn:active {
+  transform: translateY(0);
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.stop-btn {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.reset-btn {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .stopwatch-container {
+    padding: 1rem;
+  }
+  
+  .time-display {
+    font-size: 2.5rem;
+    margin: 1rem 0;
+    min-width: 250px;
+  }
+  
+  .controls {
+    gap: 0.5rem;
+  }
+  
+  .control-btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    min-width: 70px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .time-display {
+    background: white;
+    border: 2px solid #000;
+    color: #000;
+  }
+  
+  .control-btn {
+    border: 2px solid #000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .control-btn {
+    transition: none;
+  }
+  
+  .control-btn:hover {
+    transform: none;
+  }
+}

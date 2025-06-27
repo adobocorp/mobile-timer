@@ -1,0 +1,201 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+# Helper function to get version based on commit count
+def get_version_from_commits
+  commit_count = sh("cd .. && git rev-list --count HEAD", log: false).strip
+  version = "1.0.#{commit_count}"
+  UI.message("📦 Generated version: #{version}")
+  return version
+end
+
+# Helper function to get build name with commit info
+def get_build_name(platform, build_type)
+  version = get_version_from_commits
+  commit_hash = sh("cd .. && git rev-parse --short HEAD", log: false).strip
+  timestamp = Time.now.strftime("%Y%m%d_%H%M")
+  
+  build_name = "MobileTimer-#{platform}-#{build_type}-v#{version}-#{commit_hash}-#{timestamp}"
+  UI.message("🏗️ Build name: #{build_name}")
+  return build_name
+end
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build iOS app for development"
+  lane :build do
+    # Build the React app
+    sh("cd .. && npm run build")
+    
+    # Sync Capacitor
+    sh("cd .. && npx cap sync ios")
+    
+    # Generate dynamic build name
+    build_name = get_build_name("ios", "debug")
+    
+    # Build the iOS app
+    build_app(
+      scheme: "App",
+      workspace: "ios/App/App.xcworkspace",
+      export_method: "development",
+      output_directory: "./build/ios",
+      output_name: "#{build_name}.ipa"
+    )
+    
+    UI.success("✅ iOS Debug IPA built: #{build_name}.ipa")
+  end
+
+  desc "Build iOS app for App Store"
+  lane :release do
+    # Build the React app
+    sh("cd .. && npm run build")
+    
+    # Sync Capacitor
+    sh("cd .. && npx cap sync ios")
+    
+    # Generate dynamic build name
+    build_name = get_build_name("ios", "release")
+    
+    # Build the iOS app for release
+    build_app(
+      scheme: "App",
+      workspace: "ios/App/App.xcworkspace",
+      export_method: "app-store",
+      output_directory: "./build/ios",
+      output_name: "#{build_name}.ipa"
+    )
+    
+    UI.success("✅ iOS Release IPA built: #{build_name}.ipa")
+  end
+end
+
+platform :android do
+  desc "Build Android APK for development"
+  lane :build do
+    # Build the React app
+    sh("cd .. && npm run build")
+    
+    # Sync Capacitor
+    sh("cd .. && npx cap sync android")
+    
+    # Build the Android app
+    gradle(
+      project_dir: "android",
+      task: "assembleDebug",
+      properties: {
+        "org.gradle.jvmargs" => "-Xmx2g"
+      }
+    )
+    
+    # Generate dynamic build name
+    build_name = get_build_name("android", "debug")
+    
+    # Copy APK to build directory
+    sh("cd .. && mkdir -p \"./fastlane/build/android\"")
+    sh("cd .. && cp \"./android/app/build/outputs/apk/debug/app-debug.apk\" \"./fastlane/build/android/#{build_name}.apk\"")
+    
+    UI.success("✅ Android Debug APK built: #{build_name}.apk")
+  end
+
+  desc "Build Android AAB for release"
+  lane :release do
+    # Build the React app
+    sh("cd .. && npm run build")
+    
+    # Sync Capacitor
+    sh("cd .. && npx cap sync android")
+    
+    # Build the Android app bundle
+    gradle(
+      project_dir: "android",
+      task: "bundleRelease",
+      properties: {
+        "org.gradle.jvmargs" => "-Xmx2g"
+      }
+    )
+    
+    # Generate dynamic build name
+    build_name = get_build_name("android", "release")
+    
+    # Copy AAB to build directory
+    sh("cd .. && mkdir -p \"./fastlane/build/android\"")
+    sh("cd .. && cp \"./android/app/build/outputs/bundle/release/app-release.aab\" \"./fastlane/build/android/#{build_name}.aab\"")
+    
+    UI.success("✅ Android Release AAB built: #{build_name}.aab")
+  end
+
+  desc "Build Android APK for release"
+  lane :release_apk do
+    # Build the React app
+    sh("cd .. && npm run build")
+    
+    # Sync Capacitor
+    sh("cd .. && npx cap sync android")
+    
+    # Build the Android APK
+    gradle(
+      project_dir: "android",
+      task: "assembleRelease",
+      properties: {
+        "org.gradle.jvmargs" => "-Xmx2g"
+      }
+    )
+    
+    # Generate dynamic build name
+    build_name = get_build_name("android", "release-apk")
+    
+    # Copy APK to build directory
+    sh("cd .. && mkdir -p \"./fastlane/build/android\"")
+    sh("cd .. && cp \"./android/app/build/outputs/apk/release/app-release.apk\" \"./fastlane/build/android/#{build_name}.apk\"")
+    
+    UI.success("✅ Android Release APK built: #{build_name}.apk")
+  end
+end
+
+# Cross-platform lanes
+desc "Build both iOS and Android apps for development"
+lane :build_all do
+  sh("fastlane ios build")
+  sh("fastlane android build")
+end
+
+desc "Build both iOS and Android apps for release"
+lane :release_all do
+  sh("fastlane ios release")
+  sh("fastlane android release")
+end
+
+desc "Clean all build artifacts"
+lane :clean do
+  # Clean Fastlane build artifacts
+  sh("rm -rf ./build/")
+  
+  # Clean React build
+  sh("cd .. && rm -rf ./dist/")
+  
+  # Clean Android build artifacts
+  sh("cd .. && rm -rf ./android/app/build/")
+  sh("cd .. && rm -rf ./android/build/")
+  sh("cd .. && rm -rf ./android/.gradle/")
+  
+  # Clean iOS build artifacts (if on macOS)
+  if RUBY_PLATFORM.include?('darwin')
+    sh("cd .. && rm -rf ./ios/App/build/")
+    sh("cd .. && rm -rf ./ios/App/DerivedData/")
+  end
+  
+  UI.success("✅ All build artifacts cleaned!")
+end
