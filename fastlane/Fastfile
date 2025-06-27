@@ -17,7 +17,6 @@
 def get_version_from_commits
   commit_count = sh("cd .. && git rev-list --count HEAD", log: false).strip
   version = "1.0.#{commit_count}"
-  UI.message("📦 Generated version: #{version}")
   return version
 end
 
@@ -28,7 +27,6 @@ def get_build_name(platform, build_type)
   timestamp = Time.now.strftime("%Y%m%d_%H%M")
   
   build_name = "MobileTimer-#{platform}-#{build_type}-v#{version}-#{commit_hash}-#{timestamp}"
-  UI.message("🏗️ Build name: #{build_name}")
   return build_name
 end
 
@@ -59,8 +57,6 @@ platform :ios do
       output_directory: "./build/ios",
       output_name: "#{build_name}.ipa"
     )
-    
-    UI.success("✅ iOS Debug IPA built: #{build_name}.ipa")
   end
 
   desc "Build iOS app for App Store"
@@ -87,8 +83,6 @@ platform :ios do
       output_directory: "./build/ios",
       output_name: "#{build_name}.ipa"
     )
-    
-    UI.success("✅ iOS Release IPA built: #{build_name}.ipa")
   end
 end
 
@@ -121,8 +115,6 @@ platform :android do
     # Copy APK to build directory
     sh("cd .. && mkdir -p \"./fastlane/build/android\"")
     sh("cd .. && cp \"./android/app/build/outputs/apk/debug/app-debug.apk\" \"./fastlane/build/android/#{build_name}.apk\"")
-    
-    UI.success("✅ Android Debug APK built: #{build_name}.apk")
   end
 
   desc "Build Android AAB for release"
@@ -153,8 +145,6 @@ platform :android do
     # Copy AAB to build directory
     sh("cd .. && mkdir -p \"./fastlane/build/android\"")
     sh("cd .. && cp \"./android/app/build/outputs/bundle/release/app-release.aab\" \"./fastlane/build/android/#{build_name}.aab\"")
-    
-    UI.success("✅ Android Release AAB built: #{build_name}.aab")
   end
 
   desc "Build Android APK for release"
@@ -185,8 +175,6 @@ platform :android do
     # Copy APK to build directory
     sh("cd .. && mkdir -p \"./fastlane/build/android\"")
     sh("cd .. && cp \"./android/app/build/outputs/apk/release/app-release.apk\" \"./fastlane/build/android/#{build_name}.apk\"")
-    
-    UI.success("✅ Android Release APK built: #{build_name}.apk")
   end
 end
 
@@ -221,6 +209,4 @@ lane :clean do
     sh("cd .. && rm -rf ./ios/App/build/")
     sh("cd .. && rm -rf ./ios/App/DerivedData/")
   end
-  
-  UI.success("✅ All build artifacts cleaned!")
 end

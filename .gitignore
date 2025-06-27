@@ -30,6 +30,9 @@ fastlane/test_output/
 fastlane/screenshots/
 fastlane/metadata/
 
+fastlane/README.md
+fastlane/report.xml
+
 # Mobile build outputs
 *.ipa
 *.apk
