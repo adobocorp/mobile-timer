@@ -1,7 +1,4 @@
-fastlane documentation
-----
-
-# Mobile Timer - Build Documentation
+# Mobile Timer
 
 This is a mobile timer application built with React, TypeScript, and Capacitor.js for cross-platform mobile deployment.
 
