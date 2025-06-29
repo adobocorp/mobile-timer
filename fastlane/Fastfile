@@ -54,7 +54,7 @@ platform :ios do
       scheme: "App",
       workspace: "ios/App/App.xcworkspace",
       export_method: "development",
-      output_directory: "./build/ios",
+      output_directory: "./fastlane/build/ios",
       output_name: "#{build_name}.ipa"
     )
   end
@@ -80,7 +80,7 @@ platform :ios do
       scheme: "App",
       workspace: "ios/App/App.xcworkspace",
       export_method: "app-store",
-      output_directory: "./build/ios",
+      output_directory: "./fastlane/build/ios",
       output_name: "#{build_name}.ipa"
     )
   end
