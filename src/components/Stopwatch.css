@@ -12,14 +12,13 @@
 .time-display {
   font-size: 3.5rem;
   font-weight: 300;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   color: #2c3e50;
   text-align: center;
   margin: 2rem 0;
   padding: 1rem;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   min-width: 280px;
@@ -42,14 +41,12 @@
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 80px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .control-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .control-btn:active {
@@ -77,26 +74,212 @@
   color: white;
 }
 
+/* Submit button styles */
+.submit-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+}
+
+/* Sessions styles */
+.sessions-container {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 2rem;
+}
+
+.sessions-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sessions-list {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 15px;
+  padding: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  background: white;
+  border-radius: 10px;
+  transition: transform 0.2s ease;
+}
+
+.session-item:hover {
+  transform: translateY(-1px);
+}
+
+.session-item:last-child {
+  margin-bottom: 0;
+}
+
+.session-number {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6c757d;
+  min-width: 30px;
+}
+
+.session-duration {
+  font-family: "Courier New", monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  flex: 1;
+  text-align: center;
+}
+
+.session-time {
+  font-size: 0.8rem;
+  color: #6c757d;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* Total time styles */
+.total-time-container {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid #e9ecef;
+}
+
+.total-time-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.total-time-label {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.total-time-value {
+  font-family: "Courier New", monospace;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 /* Mobile optimizations */
 @media (max-width: 480px) {
   .stopwatch-container {
     padding: 1rem;
   }
-  
+
   .time-display {
     font-size: 2.5rem;
     margin: 1rem 0;
     min-width: 250px;
   }
-  
+
   .controls {
     gap: 0.5rem;
   }
-  
+
   .control-btn {
     padding: 0.8rem 1.5rem;
     font-size: 1rem;
     min-width: 70px;
+  }
+
+  .submit-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    margin-top: 0.75rem;
+  }
+
+  .sessions-container {
+    margin-top: 1.5rem;
+  }
+
+  .sessions-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .sessions-list {
+    padding: 0.75rem;
+    max-height: 250px;
+  }
+
+  .session-item {
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .session-number {
+    font-size: 0.8rem;
+    min-width: 25px;
+  }
+
+  .session-duration {
+    font-size: 0.9rem;
+  }
+
+  .session-time {
+    font-size: 0.75rem;
+    min-width: 45px;
+  }
+
+  .total-time-container {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .total-time-display {
+    padding: 0.75rem;
+  }
+
+  .total-time-label {
+    font-size: 0.9rem;
+  }
+
+  .total-time-value {
+    font-size: 1.1rem;
   }
 }
 
@@ -107,9 +290,44 @@
     border: 2px solid #000;
     color: #000;
   }
-  
+
   .control-btn {
     border: 2px solid #000;
+  }
+
+  .submit-btn {
+    background: #000;
+    border: 2px solid #fff;
+    color: #fff;
+  }
+
+  .submit-btn:disabled {
+    background: #666;
+    border-color: #999;
+    color: #ccc;
+  }
+
+  .sessions-list {
+    background: white;
+    border: 2px solid #000;
+  }
+
+  .session-item {
+    border: 1px solid #000;
+  }
+
+  .sessions-title {
+    color: #000;
+  }
+
+  .total-time-display {
+    background: #000;
+    border: 2px solid #fff;
+    color: #fff;
+  }
+
+  .total-time-container {
+    border-top-color: #000;
   }
 }
 
@@ -118,8 +336,24 @@
   .control-btn {
     transition: none;
   }
-  
+
   .control-btn:hover {
+    transform: none;
+  }
+
+  .session-item {
+    transition: none;
+  }
+
+  .session-item:hover {
+    transform: none;
+  }
+
+  .submit-btn {
+    transition: none;
+  }
+
+  .submit-btn:hover:not(:disabled) {
     transform: none;
   }
 }

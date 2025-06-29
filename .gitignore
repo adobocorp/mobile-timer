@@ -41,3 +41,5 @@ fastlane/report.xml
 # Capacitor
 ios
 android
+
+.env

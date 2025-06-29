@@ -1,10 +1,13 @@
-import { useState } from 'react'
-import { Stopwatch } from './components/Stopwatch'
-import './App.css'
+import { useState } from "react";
+import { Stopwatch } from "./components/Stopwatch";
+import "./App.css";
 
 function App() {
-  const [title] = useState('Mobile Timer');
-  const [description] = useState('Precision stopwatch for mobile devices');
+  const [title] = useState(import.meta.env.VITE_APP_NAME || "Timer App");
+  const [description] = useState(
+    import.meta.env.VITE_APP_TAGLINE || "Mobile Timer"
+  );
+
   return (
     <>
       <header className="app-header">
@@ -15,7 +18,7 @@ function App() {
         <Stopwatch />
       </main>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

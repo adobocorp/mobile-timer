@@ -39,7 +39,7 @@ platform :ios do
     sh("cd .. && npm run build")
     
     # Initialize Capacitor if not already done
-    unless File.exist?("ios/App/App.xcworkspace")
+    unless Dir.exist?("../ios")
       sh("cd .. && npx cap add ios")
     end
     
@@ -65,7 +65,7 @@ platform :ios do
     sh("cd .. && npm run build")
 
     # Initialize Capacitor if not already done
-    unless File.exist?("ios/App/App.xcworkspace")
+    unless Dir.exist?("../ios")
       sh("cd .. && npx cap add ios")
     end
     
@@ -93,7 +93,7 @@ platform :android do
     sh("cd .. && npm run build")
     
     # Initialize Capacitor if not already done
-    unless File.exist?("android/app/src/main/AndroidManifest.xml")
+    unless Dir.exist?("../android")
       sh("cd .. && npx cap add android")
     end
     
@@ -123,7 +123,7 @@ platform :android do
     sh("cd .. && npm run build")
 
     # Initialize Capacitor if not already done
-    unless File.exist?("android/app/src/main/AndroidManifest.xml")
+    unless Dir.exist?("../android")
       sh("cd .. && npx cap add android")
     end
     
@@ -153,7 +153,7 @@ platform :android do
     sh("cd .. && npm run build")
 
     # Initialize Capacitor if not already done
-    unless File.exist?("android/app/src/main/AndroidManifest.xml")
+    unless Dir.exist?("../android")
       sh("cd .. && npx cap add android")
     end
     
