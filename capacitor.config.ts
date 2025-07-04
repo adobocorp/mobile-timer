@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.example.mobiletimer",
-  appName: "Mobile Timer",
+  appId: "com.adobocorp.sessiontimer",
+  appName: "Session Timer",
   webDir: "dist",
   server: {
     androidScheme: "https",

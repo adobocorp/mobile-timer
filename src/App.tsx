@@ -3,9 +3,9 @@ import { Stopwatch } from "./components/Stopwatch";
 import "./App.css";
 
 function App() {
-  const [title] = useState(import.meta.env.VITE_APP_NAME || "Timer App");
+  const [title] = useState(import.meta.env.VITE_APP_NAME || "Session Timer");
   const [description] = useState(
-    import.meta.env.VITE_APP_TAGLINE || "Mobile Timer"
+    import.meta.env.VITE_APP_TAGLINE || "Session Timer"
   );
 
   return (

@@ -1,6 +1,6 @@
-# Mobile Timer
+# Session Timer
 
-This is a mobile timer application built with React, TypeScript, and Capacitor.js for cross-platform mobile deployment.
+This is a session timer application built with React, TypeScript, and Capacitor.js for cross-platform mobile deployment.
 
 # Installation
 
