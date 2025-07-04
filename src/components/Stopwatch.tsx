@@ -11,7 +11,6 @@ export const Stopwatch: React.FC = () => {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -39,15 +38,6 @@ export const Stopwatch: React.FC = () => {
     return sessions.reduce((total, session) => total + session.duration, 0);
   }, [sessions]);
 
-  const submitTimeData = useCallback(async (): Promise<void> => {
-    // Mock API call that simulates server request
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 1500); // Simulate 1.5 second API call
-    });
-  }, [sessions, calculateTotalTime]);
-
   const handleStart = () => {
     setIsRunning(true);
   };
@@ -69,22 +59,6 @@ export const Stopwatch: React.FC = () => {
     setTime(0);
     setIsRunning(false);
     setSessions([]);
-  };
-
-  const handleSubmitTime = async () => {
-    setIsSubmitting(true);
-    try {
-      await submitTimeData();
-      // Reset application to original state on success
-      setTime(0);
-      setIsRunning(false);
-      setSessions([]);
-    } catch (error) {
-      console.error("Failed to submit time data:", error);
-      // In a real app, you might show an error message to the user
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
@@ -149,16 +123,6 @@ export const Stopwatch: React.FC = () => {
                 </span>
               </div>
             </div>
-          )}
-          {sessions.length > 0 && (
-            <button
-              className="submit-btn"
-              onClick={handleSubmitTime}
-              disabled={isSubmitting}
-              aria-label="Submit time data"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Time"}
-            </button>
           )}
         </div>
       )}
