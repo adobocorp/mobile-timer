@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Preferences } from "@capacitor/preferences";
+import { Dialog } from "@capacitor/dialog";
 import "./Stopwatch.css";
 
 interface Session {
@@ -7,10 +9,28 @@ interface Session {
   timestamp: Date;
 }
 
+interface SavedSessionSet {
+  id: string;
+  name: string;
+  sessions: Session[];
+  totalTime: number;
+  createdAt: Date;
+}
+
+interface SessionSummaryPeriod {
+  startDate: Date;
+  endDate: Date;
+  sessions: SavedSessionSet[];
+  totalTime: number;
+  sessionCount: number;
+}
+
 export const Stopwatch: React.FC = () => {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [savedSessionSets, setSavedSessionSets] = useState<SavedSessionSet[]>([]);
+  const [activeTab, setActiveTab] = useState<'stopwatch' | 'saved'>('stopwatch');
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -23,6 +43,133 @@ export const Stopwatch: React.FC = () => {
 
     return () => clearInterval(intervalId);
   }, [isRunning]);
+
+  // Load saved sessions on component mount
+  useEffect(() => {
+    loadSavedSessions();
+  }, []);
+
+  const loadSavedSessions = async () => {
+    try {
+      const { value } = await Preferences.get({ key: "savedSessionSets" });
+      if (value) {
+        const parsed = JSON.parse(value) as SavedSessionSet[];
+        // Convert date strings back to Date objects
+        const sessionsWithDates = parsed.map((sessionSet) => ({
+          ...sessionSet,
+          createdAt: new Date(sessionSet.createdAt),
+          sessions: sessionSet.sessions.map((session) => ({
+            ...session,
+            timestamp: new Date(session.timestamp),
+          })),
+        }));
+        setSavedSessionSets(sessionsWithDates);
+      }
+    } catch (error) {
+      console.error("Error loading saved sessions:", error);
+    }
+  };
+
+  const saveSessionSet = async () => {
+    if (sessions.length === 0) return;
+
+    // Show confirmation dialog
+    const { value } = await Dialog.confirm({
+      title: 'Save Session',
+      message: `Save ${sessions.length} item${sessions.length !== 1 ? 's' : ''} with total duration of ${formatTime(calculateTotalTime())}?`,
+      okButtonTitle: 'Save',
+      cancelButtonTitle: 'Cancel'
+    });
+
+    // If user cancelled, return early
+    if (!value) return;
+
+    // Generate automatic session name based on date and time
+    const now = new Date();
+    const sessionName = `Session ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`;
+
+    const newSessionSet: SavedSessionSet = {
+      id: Date.now().toString(),
+      name: sessionName,
+      sessions: [...sessions],
+      totalTime: calculateTotalTime(),
+      createdAt: new Date(),
+    };
+
+    try {
+      const updatedSets = [...savedSessionSets, newSessionSet];
+      await Preferences.set({
+        key: "savedSessionSets",
+        value: JSON.stringify(updatedSets),
+      });
+      setSavedSessionSets(updatedSets);
+      setSessions([]);
+      
+      // Switch to saved sessions tab to show the newly saved session
+      setActiveTab('saved');
+      
+      // Show success message
+      await Dialog.alert({
+        title: 'Success',
+        message: 'Session saved successfully!',
+        buttonTitle: 'OK'
+      });
+    } catch (error) {
+      console.error("Error saving session:", error);
+      await Dialog.alert({
+        title: 'Error',
+        message: 'Error saving session. Please try again.',
+        buttonTitle: 'OK'
+      });
+    }
+  };
+
+  const deleteSavedSessionSet = async (id: string) => {
+    const sessionToDelete = savedSessionSets.find(set => set.id === id);
+    if (!sessionToDelete) return;
+
+    // Show confirmation dialog
+    const { value } = await Dialog.confirm({
+      title: 'Delete Session',
+      message: `Are you sure you want to delete "${sessionToDelete.name}"? This action cannot be undone.`,
+      okButtonTitle: 'Delete',
+      cancelButtonTitle: 'Cancel'
+    });
+
+    // If user cancelled, return early
+    if (!value) return;
+
+    try {
+      const updatedSets = savedSessionSets.filter((set) => set.id !== id);
+      await Preferences.set({
+        key: "savedSessionSets",
+        value: JSON.stringify(updatedSets),
+      });
+      setSavedSessionSets(updatedSets);
+      
+      // Switch to stopwatch tab if no saved sessions remain
+      if (updatedSets.length === 0 && activeTab === 'saved') {
+        setActiveTab('stopwatch');
+      }
+
+      // Show success message
+      await Dialog.alert({
+        title: 'Deleted',
+        message: 'Session deleted successfully.',
+        buttonTitle: 'OK'
+      });
+    } catch (error) {
+      console.error("Error deleting session set:", error);
+      await Dialog.alert({
+        title: 'Error',
+        message: 'Error deleting session. Please try again.',
+        buttonTitle: 'OK'
+      });
+    }
+  };
 
   const formatTime = useCallback((timeMs: number): string => {
     const minutes = Math.floor(timeMs / 60000);
@@ -37,6 +184,75 @@ export const Stopwatch: React.FC = () => {
   const calculateTotalTime = useCallback((): number => {
     return sessions.reduce((total, session) => total + session.duration, 0);
   }, [sessions]);
+
+  // Session summary logic - group saved sessions by bi-weekly periods
+  const generateSessionSummary = useCallback((): SessionSummaryPeriod[] => {
+    if (savedSessionSets.length === 0) return [];
+
+    // Create a map to group sessions by period
+    const periodsMap = new Map<string, SessionSummaryPeriod>();
+
+    savedSessionSets.forEach((sessionSet) => {
+      const date = sessionSet.createdAt;
+      const year = date.getFullYear();
+      const month = date.getMonth(); // 0-indexed
+      const day = date.getDate();
+
+      // Determine if this is first half (1-15) or second half (16-end) of the month
+      const isFirstHalf = day <= 15;
+      
+      // Create period start and end dates
+      let startDate: Date;
+      let endDate: Date;
+      
+      if (isFirstHalf) {
+        // First half: 1st to 15th
+        startDate = new Date(year, month, 1);
+        endDate = new Date(year, month, 15, 23, 59, 59, 999);
+      } else {
+        // Second half: 16th to end of month
+        startDate = new Date(year, month, 16);
+        // Get the last day of the month
+        endDate = new Date(year, month + 1, 0, 23, 59, 59, 999);
+      }
+
+      // Create a unique key for this period
+      const periodKey = `${year}-${month}-${isFirstHalf ? 'first' : 'second'}`;
+
+      if (!periodsMap.has(periodKey)) {
+        periodsMap.set(periodKey, {
+          startDate,
+          endDate,
+          sessions: [],
+          totalTime: 0,
+          sessionCount: 0,
+        });
+      }
+
+      const period = periodsMap.get(periodKey)!;
+      period.sessions.push(sessionSet);
+      period.totalTime += sessionSet.totalTime;
+      period.sessionCount += sessionSet.sessions.length;
+    });
+
+    // Convert map to array and sort by date (most recent first)
+    return Array.from(periodsMap.values()).sort(
+      (a, b) => b.startDate.getTime() - a.startDate.getTime()
+    );
+  }, [savedSessionSets]);
+
+  const formatPeriodLabel = (period: SessionSummaryPeriod): string => {
+    const startDate = period.startDate;
+    const endDate = period.endDate;
+    const monthName = startDate.toLocaleDateString('en-US', { month: 'long' });
+    const year = startDate.getFullYear();
+
+    if (startDate.getDate() === 1 && startDate.getDate() <= 15) {
+      return `${monthName} 1-15, ${year}`;
+    } else {
+      return `${monthName} 16-${endDate.getDate()}, ${year}`;
+    }
+  };
 
   const handleStart = () => {
     setIsRunning(true);
@@ -55,7 +271,20 @@ export const Stopwatch: React.FC = () => {
     setIsRunning(false);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    // Only show confirmation if there are sessions or if the timer is running/has time
+    if (sessions.length > 0 || time > 0) {
+      const { value } = await Dialog.confirm({
+        title: 'Reset Stopwatch',
+        message: 'Are you sure you want to reset? This will clear all current sessions and the timer.',
+        okButtonTitle: 'Reset',
+        cancelButtonTitle: 'Cancel'
+      });
+
+      // If user cancelled, return early
+      if (!value) return;
+    }
+
     setTime(0);
     setIsRunning(false);
     setSessions([]);
@@ -63,65 +292,171 @@ export const Stopwatch: React.FC = () => {
 
   return (
     <div className="stopwatch-container">
-      <div className="time-display">{formatTime(time)}</div>
-
-      <div className="controls">
-        {!isRunning ? (
+      <div className="tabs-container">
+        <button
+          className={`tab-btn ${activeTab === 'stopwatch' ? 'active' : ''}`}
+          onClick={() => setActiveTab('stopwatch')}
+          aria-label="Stopwatch tab"
+        >
+          Stopwatch
+        </button>
+        {savedSessionSets.length > 0 && (
           <button
-            className="control-btn start-btn"
-            onClick={handleStart}
-            aria-label="Start stopwatch"
+            className={`tab-btn ${activeTab === 'saved' ? 'active' : ''}`}
+            onClick={() => setActiveTab('saved')}
+            aria-label="Saved sessions tab"
           >
-            Start
-          </button>
-        ) : (
-          <button
-            className="control-btn stop-btn"
-            onClick={handleStop}
-            aria-label="Stop stopwatch"
-          >
-            Stop
+            Saved Sessions
+            <span className="tab-badge">{savedSessionSets.length}</span>
           </button>
         )}
-
-        <button
-          className="control-btn reset-btn"
-          onClick={handleReset}
-          aria-label="Reset stopwatch"
-        >
-          Reset
-        </button>
       </div>
 
-      {sessions.length > 0 && (
-        <div className="sessions-container">
-          <div className="sessions-list">
-            {sessions.map((session, index) => (
-              <div key={session.id} className="session-item">
-                <span className="session-number">
-                  #{sessions.length - index}
-                </span>
-                <span className="session-duration">
-                  {formatTime(session.duration)}
-                </span>
-                <span className="session-time">
-                  {session.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
-            ))}
+      {activeTab === 'stopwatch' && (
+        <div className="tab-content">
+          <div className="time-display">{formatTime(time)}</div>
+
+          <div className="controls">
+            {!isRunning ? (
+              <button
+                className="control-btn start-btn"
+                onClick={handleStart}
+                aria-label="Start stopwatch"
+              >
+                Start
+              </button>
+            ) : (
+              <button
+                className="control-btn stop-btn"
+                onClick={handleStop}
+                aria-label="Stop stopwatch"
+              >
+                Stop
+              </button>
+            )}
+
+            <button
+              className="control-btn reset-btn"
+              onClick={handleReset}
+              aria-label="Reset stopwatch"
+            >
+              Reset
+            </button>
           </div>
 
-          {sessions.length > 1 && (
-            <div className="total-time-container">
-              <div className="total-time-display">
-                <span className="total-time-label">Total Time:</span>
-                <span className="total-time-value">
-                  {formatTime(calculateTotalTime())}
-                </span>
+          {sessions.length > 0 && (
+            <div className="sessions-container">
+              <div className="sessions-list">
+                {sessions.map((session, index) => (
+                  <div key={session.id} className="session-item">
+                    <span className="session-number">
+                      #{sessions.length - index}
+                    </span>
+                    <span className="session-duration">
+                      {formatTime(session.duration)}
+                    </span>
+                    <span className="session-time">
+                      {session.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                ))}
               </div>
+
+              {sessions.length > 1 && (
+                <div className="total-time-container">
+                  <div className="total-time-display">
+                    <span className="total-time-label">Total Time:</span>
+                    <span className="total-time-value">
+                      {formatTime(calculateTotalTime())}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="save-session-container">
+                <button
+                  className="submit-btn"
+                  onClick={saveSessionSet}
+                  disabled={sessions.length === 0}
+                  aria-label="Save current session"
+                >
+                  Save Session
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'saved' && (
+        <div className="tab-content">
+          {savedSessionSets.length > 0 ? (
+            <div className="saved-sessions-container">
+              <div className="saved-sessions-list">
+                {savedSessionSets.map((sessionSet) => (
+                  <div key={sessionSet.id} className="saved-session-item">
+                    <div className="saved-session-header">
+                      <span className="saved-session-name">{sessionSet.name}</span>
+                      <button
+                        className="delete-btn"
+                        onClick={() => deleteSavedSessionSet(sessionSet.id)}
+                        aria-label={`Delete ${sessionSet.name} session`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="saved-session-info">
+                      <span className="saved-session-count">
+                        {sessionSet.sessions.length} session{sessionSet.sessions.length !== 1 ? 's' : ''}
+                      </span>
+                      <span className="saved-session-total">
+                        {formatTime(sessionSet.totalTime)}
+                      </span>
+                      <span className="saved-session-date">
+                        {sessionSet.createdAt.toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Session Summary */}
+              <div className="session-summary">
+                <h3 className="session-summary-title">Summary by Period</h3>
+                <div className="session-summary-periods">
+                  {generateSessionSummary().map((period, index) => (
+                    <div key={index} className="session-summary-period">
+                      <div className="session-summary-period-header">
+                        <span className="session-summary-period-label">
+                          {formatPeriodLabel(period)}
+                        </span>
+                        <span className="session-summary-period-total">
+                          {formatTime(period.totalTime)}
+                        </span>
+                      </div>
+                      <div className="session-summary-period-details">
+                        <span className="session-summary-period-sessions">
+                          {period.sessions.length} session set{period.sessions.length !== 1 ? 's' : ''}
+                        </span>
+                        <span className="session-summary-period-individual">
+                          {period.sessionCount} individual session{period.sessionCount !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon">📝</div>
+              <h3 className="empty-state-title">No Saved Sessions</h3>
+              <p className="empty-state-description">
+                Start timing sessions in the Stopwatch tab, then save them to see them here.
+              </p>
             </div>
           )}
         </div>

@@ -3,6 +3,7 @@
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
   display: flex;
   flex-direction: column;
 }
@@ -11,8 +12,15 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 2rem 1rem 1rem 1rem;
+  /* Add safe area padding for mobile devices */
+  padding-top: calc(1rem + env(safe-area-inset-top));
+  padding-left: calc(1rem + env(safe-area-inset-left));
+  padding-right: calc(1rem + env(safe-area-inset-right));
   text-align: center;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  /* Ensure header content is always visible */
+  position: relative;
+  z-index: 100;
 }
 
 .app-header h1 {
@@ -33,20 +41,54 @@ main {
   flex: 1;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: calc(100vh - 140px);
+  /* Add safe area padding for main content */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Mobile optimizations */
 @media (max-width: 480px) {
   .app-header {
     padding: 1.5rem 1rem 0.5rem 1rem;
+    /* Increase safe area padding on mobile for better touch targets */
+    padding-top: calc(1.5rem + env(safe-area-inset-top));
+    padding-left: calc(1rem + env(safe-area-inset-left));
+    padding-right: calc(1rem + env(safe-area-inset-right));
   }
   
   .app-header h1 {
     font-size: 2rem;
+    /* Ensure header text is not too close to safe area edges */
+    margin: 0 0 0.5rem 0;
   }
   
   .app-header p {
     font-size: 0.9rem;
+    margin: 0;
+    opacity: 0.9;
+  }
+
+  main {
+    /* Adjust main content padding for mobile */
+    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 120px);
+  }
+}
+
+/* Landscape orientation adjustments for devices with notches */
+@media (orientation: landscape) and (max-height: 500px) {
+  .app-header {
+    padding-top: calc(0.5rem + env(safe-area-inset-top));
+    padding-bottom: 0.5rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .app-header p {
+    font-size: 0.85rem;
   }
 }
 

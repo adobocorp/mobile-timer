@@ -18,7 +18,9 @@
     "@capacitor/android": "^7.4.0",
     "@capacitor/cli": "^7.4.0",
     "@capacitor/core": "^7.4.0",
+    "@capacitor/dialog": "^7.0.1",
     "@capacitor/ios": "^7.4.0",
+    "@capacitor/preferences": "^7.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
