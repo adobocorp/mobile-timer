@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import cn from "classnames";
 import { Preferences } from "@capacitor/preferences";
 import { Dialog } from "@capacitor/dialog";
+import { Clipboard } from "@capacitor/clipboard";
 import "./Stopwatch.css";
 
 interface Session {
@@ -358,152 +359,230 @@ export const Stopwatch: React.FC = () => {
     setSessions([]);
   };
 
-  // Function to generate and download histogram
-  const downloadHistogram = useCallback(() => {
+  // Function to generate and copy histogram to clipboard
+  const copyHistogramReport = useCallback(async () => {
     if (!selectedPeriod) return;
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas dimensions
-    const width = 1000;
-    const height = 600;
-    const padding = 80;
-    canvas.width = width;
-    canvas.height = height;
-
-    // Generate daily breakdown for the selected period
-    const dailyData = new Map<string, number>();
-    
-    // Initialize all days in the period with 0
-    const startDate = new Date(selectedPeriod.startDate);
-    const endDate = new Date(selectedPeriod.endDate);
-    
-    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-      const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-      dailyData.set(dateKey, 0);
-    }
-
-    // Aggregate session time by day
-    selectedPeriod.sessions.forEach(sessionSet => {
-      sessionSet.sessions.forEach(session => {
-        const sessionDate = session.timestamp.toISOString().split('T')[0];
-        const currentTime = dailyData.get(sessionDate) || 0;
-        dailyData.set(sessionDate, currentTime + session.duration);
+    try {
+      // Show loading state
+      await Dialog.alert({
+        title: 'Generating Report',
+        message: 'Creating your histogram report...',
+        buttonTitle: 'OK'
       });
-    });
 
-    // Convert to sorted array
-    const dailyArray = Array.from(dailyData.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-    const maxTime = Math.max(...dailyArray.map(([, time]) => time), 1); // Ensure at least 1 to avoid division by 0
-
-    // Chart dimensions
-    const chartWidth = width - 2 * padding;
-    const chartHeight = height - 2 * padding - 80; // Extra space for title and labels
-
-    // Background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
-
-    // Title
-    ctx.fillStyle = '#2c3e50';
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Daily Session Time', width / 2, 40);
-
-    // Period subtitle
-    ctx.font = '16px Arial';
-    ctx.fillStyle = '#007bff';
-    ctx.fillText(`${formatPeriodLabel(selectedPeriod)}`, width / 2, 70);
-
-    // Draw bars
-    const barWidth = chartWidth / dailyArray.length;
-    const barSpacing = Math.max(2, barWidth * 0.1);
-    const actualBarWidth = Math.max(1, barWidth - barSpacing);
-
-    dailyArray.forEach(([dateStr, timeMs], index) => {
-      const barHeight = maxTime > 0 ? (timeMs / maxTime) * chartHeight : 0;
-      const x = padding + index * barWidth + barSpacing / 2;
-      const y = padding + 80 + (chartHeight - barHeight);
-
-      // Bar color - gradient based on intensity
-      const intensity = timeMs / maxTime;
-      if (timeMs > 0) {
-        ctx.fillStyle = `rgba(0, 123, 255, ${0.3 + intensity * 0.7})`;
-      } else {
-        ctx.fillStyle = '#f8f9fa';
-      }
-      ctx.fillRect(x, y, actualBarWidth, barHeight);
-
-      // Bar border
-      ctx.strokeStyle = '#dee2e6';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x, y, actualBarWidth, barHeight);
-
-      // Time label on bar (if bar is tall enough and there's time)
-      if (barHeight > 25 && timeMs > 0) {
-        ctx.fillStyle = intensity > 0.5 ? '#ffffff' : '#2c3e50';
-        ctx.font = '10px Arial';
-        ctx.textAlign = 'center';
-        const timeText = formatTime(timeMs);
-        ctx.fillText(timeText, x + actualBarWidth / 2, y + 15);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        await Dialog.alert({
+          title: 'Error',
+          message: 'Unable to create histogram. Canvas not supported.',
+          buttonTitle: 'OK'
+        });
+        return;
       }
 
-      // Date label below bar
-      ctx.fillStyle = '#6c757d';
-      ctx.font = '9px Arial';
+      // Set canvas dimensions
+      const width = 1000;
+      const height = 600;
+      const padding = 80;
+      canvas.width = width;
+      canvas.height = height;
+
+      // Generate daily breakdown for the selected period
+      const dailyData = new Map<string, number>();
+      
+      // Initialize all days in the period with 0
+      const startDate = new Date(selectedPeriod.startDate);
+      const endDate = new Date(selectedPeriod.endDate);
+      
+      for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+        const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+        dailyData.set(dateKey, 0);
+      }
+
+      // Aggregate session time by day
+      selectedPeriod.sessions.forEach(sessionSet => {
+        sessionSet.sessions.forEach(session => {
+          const sessionDate = session.timestamp.toISOString().split('T')[0];
+          const currentTime = dailyData.get(sessionDate) || 0;
+          dailyData.set(sessionDate, currentTime + session.duration);
+        });
+      });
+
+      // Convert to sorted array
+      const dailyArray = Array.from(dailyData.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+      const maxTime = Math.max(...dailyArray.map(([, time]) => time), 1); // Ensure at least 1 to avoid division by 0
+
+      // Chart dimensions
+      const chartWidth = width - 2 * padding;
+      const chartHeight = height - 2 * padding - 80; // Extra space for title and labels
+
+      // Background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      // Title
+      ctx.fillStyle = '#2c3e50';
+      ctx.font = 'bold 24px Arial';
       ctx.textAlign = 'center';
-      const date = new Date(dateStr);
-      const dayLabel = date.getDate().toString();
-      ctx.fillText(dayLabel, x + actualBarWidth / 2, height - padding + 15);
+      ctx.fillText('Daily Session Time', width / 2, 40);
 
-      // Month label (only on first day of month or first day)
-      if (date.getDate() === 1 || index === 0) {
-        ctx.fillStyle = '#2c3e50';
-        ctx.font = 'bold 10px Arial';
-        const monthLabel = date.toLocaleDateString('en-US', { month: 'short' });
-        ctx.fillText(monthLabel, x + actualBarWidth / 2, height - padding + 30);
+      // Period subtitle
+      ctx.font = '16px Arial';
+      ctx.fillStyle = '#007bff';
+      ctx.fillText(`${formatPeriodLabel(selectedPeriod)}`, width / 2, 70);
+
+      // Draw bars
+      const barWidth = chartWidth / dailyArray.length;
+      const barSpacing = Math.max(2, barWidth * 0.1);
+      const actualBarWidth = Math.max(1, barWidth - barSpacing);
+
+      dailyArray.forEach(([dateStr, timeMs], index) => {
+        const barHeight = maxTime > 0 ? (timeMs / maxTime) * chartHeight : 0;
+        const x = padding + index * barWidth + barSpacing / 2;
+        const y = padding + 80 + (chartHeight - barHeight);
+
+        // Bar color - gradient based on intensity
+        const intensity = timeMs / maxTime;
+        if (timeMs > 0) {
+          ctx.fillStyle = `rgba(0, 123, 255, ${0.3 + intensity * 0.7})`;
+        } else {
+          ctx.fillStyle = '#f8f9fa';
+        }
+        ctx.fillRect(x, y, actualBarWidth, barHeight);
+
+        // Bar border
+        ctx.strokeStyle = '#dee2e6';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, actualBarWidth, barHeight);
+
+        // Time label on bar (if bar is tall enough and there's time)
+        if (barHeight > 25 && timeMs > 0) {
+          ctx.fillStyle = intensity > 0.5 ? '#ffffff' : '#2c3e50';
+          ctx.font = '10px Arial';
+          ctx.textAlign = 'center';
+          const timeText = formatTime(timeMs);
+          ctx.fillText(timeText, x + actualBarWidth / 2, y + 15);
+        }
+
+        // Date label below bar
+        ctx.fillStyle = '#6c757d';
+        ctx.font = '9px Arial';
+        ctx.textAlign = 'center';
+        const date = new Date(dateStr);
+        const dayLabel = date.getDate().toString();
+        ctx.fillText(dayLabel, x + actualBarWidth / 2, height - padding + 15);
+
+        // Month label (only on first day of month or first day)
+        if (date.getDate() === 1 || index === 0) {
+          ctx.fillStyle = '#2c3e50';
+          ctx.font = 'bold 10px Arial';
+          const monthLabel = date.toLocaleDateString('en-US', { month: 'short' });
+          ctx.fillText(monthLabel, x + actualBarWidth / 2, height - padding + 30);
+        }
+      });
+
+      // Y-axis labels
+      ctx.fillStyle = '#6c757d';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 5; i++) {
+        const value = (maxTime * i) / 5;
+        const y = padding + 80 + chartHeight - (chartHeight * i) / 5;
+        ctx.fillText(formatTime(value), padding - 10, y + 4);
+        
+        // Grid lines
+        ctx.strokeStyle = '#f1f3f4';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(padding + chartWidth, y);
+        ctx.stroke();
       }
-    });
 
-    // Y-axis labels
-    ctx.fillStyle = '#6c757d';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'right';
-    for (let i = 0; i <= 5; i++) {
-      const value = (maxTime * i) / 5;
-      const y = padding + 80 + chartHeight - (chartHeight * i) / 5;
-      ctx.fillText(formatTime(value), padding - 10, y + 4);
-      
-      // Grid lines
-      ctx.strokeStyle = '#f1f3f4';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(padding, y);
-      ctx.lineTo(padding + chartWidth, y);
-      ctx.stroke();
+      // Legend
+      ctx.fillStyle = '#6c757d';
+      ctx.font = '11px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Days of the month', width / 2, height - 15);
+
+      // Convert canvas to blob and copy to clipboard
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        
+        try {
+          // First try: Check if clipboard permissions are available
+          if (navigator.clipboard && navigator.clipboard.write) {
+            // Try to get permission first
+            try {
+              const permission = await navigator.permissions.query({ name: 'clipboard-write' as PermissionName });
+              if (permission.state === 'granted' || permission.state === 'prompt') {
+                const item = new ClipboardItem({ 'image/png': blob });
+                await navigator.clipboard.write([item]);
+                
+                await Dialog.alert({
+                  title: 'Report Copied',
+                  message: 'Histogram has been copied to your clipboard as an image. You can now paste it in other apps.',
+                  buttonTitle: 'OK'
+                });
+                return;
+              }
+            } catch (permissionError) {
+              console.log('Clipboard permission check failed:', permissionError);
+            }
+          }
+          
+          // Fallback 1: Use Capacitor clipboard with base64
+          const dataUrl = canvas.toDataURL('image/png');
+          await Clipboard.write({
+            string: dataUrl
+          });
+          
+          await Dialog.alert({
+            title: 'Report Copied',
+            message: 'Histogram has been copied to your clipboard as image data. You can paste it in apps that support base64 images.',
+            buttonTitle: 'OK'
+          });
+          
+        } catch (fallbackError) {
+          console.error('All clipboard methods failed:', fallbackError);
+          
+          // Final fallback: Offer to download instead
+          try {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `daily-sessions-${formatPeriodLabel(selectedPeriod).replace(/[^a-zA-Z0-9]/g, '-')}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            await Dialog.alert({
+              title: 'Downloaded Instead',
+              message: 'Unable to copy to clipboard, so the histogram has been downloaded instead.',
+              buttonTitle: 'OK'
+            });
+          } catch (downloadError) {
+            console.error('Download fallback failed:', downloadError);
+            await Dialog.alert({
+              title: 'Copy Failed',
+              message: 'Unable to copy histogram to clipboard or download. Please check your browser permissions.',
+              buttonTitle: 'OK'
+            });
+          }
+        }
+      }, 'image/png');
+
+    } catch (error) {
+      console.error('Error generating histogram:', error);
+      await Dialog.alert({
+        title: 'Copy Error',
+        message: 'Failed to generate histogram. Please try again.',
+        buttonTitle: 'OK'
+      });
     }
-
-    // Legend
-    ctx.fillStyle = '#6c757d';
-    ctx.font = '11px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Days of the month', width / 2, height - 15);
-
-    // Convert to blob and download
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `daily-sessions-${formatPeriodLabel(selectedPeriod).replace(/[^a-zA-Z0-9]/g, '-')}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 'image/png');
   }, [selectedPeriod, formatPeriodLabel, formatTime]);
 
   return (
@@ -744,14 +823,14 @@ export const Stopwatch: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Download Histogram Button */}
-                    <div className="modal-download-histogram">
+                    {/* Copy Report Button */}
+                    <div className="modal-copy-report">
                       <button
-                        className="download-histogram-btn"
-                        onClick={downloadHistogram}
-                        aria-label="Download Report"
+                        className="copy-report-btn"
+                        onClick={copyHistogramReport}
+                        aria-label="Copy histogram report"
                       >
-                        📊 Download Report
+                        📊 Copy Report
                       </button>
                     </div>
                   </div>

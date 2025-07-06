@@ -1155,14 +1155,14 @@
   box-sizing: border-box;
 }
 
-/* Modal download histogram button styles */
-.modal-download-histogram {
+/* Modal copy report button styles */
+.modal-copy-report {
   margin-top: 1.5rem;
   text-align: center;
 }
 
-.download-histogram-btn {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+.copy-report-btn {
+  background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -1173,33 +1173,33 @@
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  box-shadow: 0 2px 8px rgba(111, 66, 193, 0.3);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.download-histogram-btn:hover {
+.copy-report-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+  box-shadow: 0 4px 12px rgba(111, 66, 193, 0.4);
 }
 
-.download-histogram-btn:active {
+.copy-report-btn:active {
   transform: translateY(0);
 }
 
-.download-histogram-btn:focus {
-  outline: 2px solid #20c997;
+.copy-report-btn:focus {
+  outline: 2px solid #8e44ad;
   outline-offset: 2px;
 }
 
-/* Mobile optimizations for download button */
+/* Mobile optimizations for copy button */
 @media (max-width: 480px) {
-  .modal-download-histogram {
+  .modal-copy-report {
     margin-top: 1rem;
   }
 
-  .download-histogram-btn {
+  .copy-report-btn {
     padding: 0.6rem 1.2rem;
     font-size: 0.9rem;
   }
