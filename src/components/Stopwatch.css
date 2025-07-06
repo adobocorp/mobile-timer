@@ -30,9 +30,12 @@
 .controls {
   display: flex;
   gap: 1rem;
-  margin: 2rem 0;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.controls-spacing {
+  margin: 2rem 0;
 }
 
 .control-btn {
@@ -179,8 +182,6 @@
 /* Total time styles */
 .total-time-container {
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid #e9ecef;
 }
 
 .total-time-display {
@@ -204,13 +205,6 @@
   font-size: 1.2rem;
   font-weight: 700;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-/* Save session styles */
-.save-session-container {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid #e9ecef;
 }
 
 /* Saved sessions styles */
@@ -1159,4 +1153,54 @@
   display: block;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Modal download histogram button styles */
+.modal-download-histogram {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.download-histogram-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.download-histogram-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.download-histogram-btn:active {
+  transform: translateY(0);
+}
+
+.download-histogram-btn:focus {
+  outline: 2px solid #20c997;
+  outline-offset: 2px;
+}
+
+/* Mobile optimizations for download button */
+@media (max-width: 480px) {
+  .modal-download-histogram {
+    margin-top: 1rem;
+  }
+
+  .download-histogram-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
 }
