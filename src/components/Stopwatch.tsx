@@ -31,6 +31,11 @@ export const Stopwatch: React.FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [savedSessionSets, setSavedSessionSets] = useState<SavedSessionSet[]>([]);
   const [activeTab, setActiveTab] = useState<'stopwatch' | 'saved'>('stopwatch');
+  const [selectedPeriod, setSelectedPeriod] = useState<SessionSummaryPeriod | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalActivePanel, setModalActivePanel] = useState<'summary' | 'sessions'>('summary');
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [expandedSessionSets, setExpandedSessionSets] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -254,6 +259,68 @@ export const Stopwatch: React.FC = () => {
     }
   };
 
+  const handlePeriodClick = (period: SessionSummaryPeriod) => {
+    setSelectedPeriod(period);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPeriod(null);
+    setModalActivePanel('summary');
+    setExpandedSessionSets(new Set()); // Reset expanded state when closing modal
+  };
+
+  const toggleSessionSetExpanded = (sessionSetId: string) => {
+    setExpandedSessionSets(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sessionSetId)) {
+        newSet.delete(sessionSetId);
+      } else {
+        newSet.add(sessionSetId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSwipeLeft = () => {
+    if (modalActivePanel === 'summary') {
+      setModalActivePanel('sessions');
+    }
+  };
+
+  const handleSwipeRight = () => {
+    if (modalActivePanel === 'sessions') {
+      setModalActivePanel('summary');
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStart(touch.clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    
+    const touch = e.changedTouches[0];
+    const touchEnd = touch.clientX;
+    const diff = touchStart - touchEnd;
+    
+    // Minimum swipe distance
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        // Swiped left
+        handleSwipeLeft();
+      } else {
+        // Swiped right
+        handleSwipeRight();
+      }
+    }
+    
+    setTouchStart(null);
+  };
+
   const handleStart = () => {
     setIsRunning(true);
   };
@@ -428,21 +495,26 @@ export const Stopwatch: React.FC = () => {
                 <h3 className="session-summary-title">Summary by Period</h3>
                 <div className="session-summary-periods">
                   {generateSessionSummary().map((period, index) => (
-                    <div key={index} className="session-summary-period">
+                    <div 
+                      key={index} 
+                      className="session-summary-period clickable"
+                      onClick={() => handlePeriodClick(period)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handlePeriodClick(period);
+                        }
+                      }}
+                      aria-label={`View details for ${formatPeriodLabel(period)}`}
+                    >
                       <div className="session-summary-period-header">
                         <span className="session-summary-period-label">
                           {formatPeriodLabel(period)}
                         </span>
                         <span className="session-summary-period-total">
                           {formatTime(period.totalTime)}
-                        </span>
-                      </div>
-                      <div className="session-summary-period-details">
-                        <span className="session-summary-period-sessions">
-                          {period.sessions.length} session set{period.sessions.length !== 1 ? 's' : ''}
-                        </span>
-                        <span className="session-summary-period-individual">
-                          {period.sessionCount} individual session{period.sessionCount !== 1 ? 's' : ''}
                         </span>
                       </div>
                     </div>
@@ -459,6 +531,147 @@ export const Stopwatch: React.FC = () => {
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal for session period details */}
+      {isModalOpen && selectedPeriod && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{formatPeriodLabel(selectedPeriod)}</h3>
+              <button 
+                className="modal-close-btn"
+                onClick={handleCloseModal}
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Navigation */}
+            <div className="modal-nav">
+              <button
+                className={`modal-nav-btn ${modalActivePanel === 'summary' ? 'active' : ''}`}
+                onClick={() => setModalActivePanel('summary')}
+              >
+                Summary
+              </button>
+              <button
+                className={`modal-nav-btn ${modalActivePanel === 'sessions' ? 'active' : ''}`}
+                onClick={() => setModalActivePanel('sessions')}
+              >
+                Session Sets ({selectedPeriod.sessions.length})
+              </button>
+            </div>
+
+            {/* Carousel Container */}
+            <div 
+              className="modal-carousel"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div 
+                className="modal-carousel-track"
+                style={{ 
+                  transform: `translateX(${modalActivePanel === 'summary' ? '0%' : '-50%'})`,
+                }}
+              >
+                {/* Panel 1: Summary */}
+                <div className="modal-panel summary-panel">
+                  <div className="modal-body">
+                    <div className="modal-summary">
+                      <div className="modal-summary-item">
+                        <span className="modal-summary-label">Total Time:</span>
+                        <span className="modal-summary-value">{formatTime(selectedPeriod.totalTime)}</span>
+                      </div>
+                      <div className="modal-summary-item">
+                        <span className="modal-summary-label">Session Sets:</span>
+                        <span className="modal-summary-value">{selectedPeriod.sessions.length}</span>
+                      </div>
+                      <div className="modal-summary-item">
+                        <span className="modal-summary-label">Individual Sessions:</span>
+                        <span className="modal-summary-value">{selectedPeriod.sessionCount}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Panel 2: Session Sets */}
+                <div className="modal-panel sessions-panel">
+                  <div className="modal-body">
+                    <div className="modal-sessions">
+                      <h4 className="modal-sessions-title">Session Sets</h4>
+                      <div className="modal-sessions-list">
+                        {selectedPeriod.sessions.map((sessionSet) => (
+                          <div key={sessionSet.id} className="modal-session-set">
+                            <div 
+                              className="modal-session-set-header"
+                              onClick={() => toggleSessionSetExpanded(sessionSet.id)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  toggleSessionSetExpanded(sessionSet.id);
+                                }
+                              }}
+                            >
+                              <div className="modal-session-set-info">
+                                <span className="modal-session-name">{sessionSet.name}</span>
+                                <span className="modal-session-date">
+                                  {sessionSet.createdAt.toLocaleDateString()}
+                                </span>
+                              </div>
+                              <div className="modal-session-set-actions">
+                                <span className="modal-session-total">{formatTime(sessionSet.totalTime)}</span>
+                                <span className={`modal-session-expand-icon ${expandedSessionSets.has(sessionSet.id) ? 'expanded' : ''}`}>
+                                  ▼
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="modal-session-details">
+                              <span className="modal-session-count">
+                                {sessionSet.sessions.length} session{sessionSet.sessions.length !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+
+                            {/* Individual Sessions List - Only show when expanded */}
+                            {expandedSessionSets.has(sessionSet.id) && (
+                              <div className="modal-individual-sessions">
+                                {sessionSet.sessions.map((session, index) => (
+                                  <div key={session.id} className="modal-individual-session">
+                                    <span className="modal-session-number">
+                                      #{sessionSet.sessions.length - index}
+                                    </span>
+                                    <span className="modal-session-duration">
+                                      {formatTime(session.duration)}
+                                    </span>
+                                    <span className="modal-session-time">
+                                      {session.timestamp.toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Swipe Indicator */}
+            <div className="modal-indicators">
+              <div className={`modal-indicator ${modalActivePanel === 'summary' ? 'active' : ''}`}></div>
+              <div className={`modal-indicator ${modalActivePanel === 'sessions' ? 'active' : ''}`}></div>
+            </div>
+          </div>
         </div>
       )}
     </div>

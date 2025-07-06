@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: "automatic",
-    scrollEnabled: false,
+    scrollEnabled: true,
     backgroundColor: "#f5f7fa",
   },
   plugins: {

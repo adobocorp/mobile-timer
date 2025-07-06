@@ -188,9 +188,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   border-radius: 12px;
-  color: white;
 }
 
 .total-time-label {
@@ -234,13 +233,7 @@
   border-radius: 12px;
   padding: 1rem;
   margin-bottom: 1rem;
-  transition: transform 0.2s ease;
   border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.saved-session-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .saved-session-item:last-child {
@@ -315,7 +308,6 @@
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 15px;
   padding: 4px;
-  margin-bottom: 2rem;
   width: 100%;
   max-width: 400px;
 }
@@ -409,343 +401,450 @@
   margin: 0;
 }
 
-/* Mobile optimizations */
+/* Clickable session summary period styles */
+.session-summary-period.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.session-summary-period.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.session-summary-period.clickable:active {
+  transform: translateY(-1px);
+}
+
+.session-summary-period.clickable:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 15px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.modal-close-btn:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  max-height: calc(80vh - 120px); /* Account for header and indicators */
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.modal-summary {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.modal-summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.modal-summary-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.modal-summary-value {
+  font-family: "Courier New", monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.modal-sessions-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+}
+
+.modal-sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal-session-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.modal-session-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c3e50;
+  flex: 1;
+}
+
+.modal-session-total {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #007bff;
+}
+
+.modal-session-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.modal-session-count {
+  font-weight: 500;
+}
+
+.modal-session-date {
+  font-size: 0.75rem;
+}
+
+/* Modal navigation styles */
+.modal-nav {
+  display: flex;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-nav-btn {
+  flex: 1;
+  padding: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 4px;
+}
+
+.modal-nav-btn.active {
+  background: #007bff;
+  color: white;
+  border-bottom: 2px solid #0056b3;
+}
+
+.modal-nav-btn:hover:not(.active) {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+/* Carousel styles */
+.modal-carousel {
+  overflow: hidden;
+  position: relative;
+  height: calc(80vh - 120px); /* Fixed height to enable proper scrolling */
+  max-height: 60vh;
+  min-height: 400px;
+}
+
+.modal-carousel-track {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  transition: transform 0.3s ease-in-out;
+}
+
+.modal-panel {
+  width: 50%;
+  min-height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-panel .modal-body {
+  padding: 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Modal indicators */
+.modal-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.modal-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dee2e6;
+  transition: background-color 0.3s ease;
+}
+
+.modal-indicator.active {
+  background: #007bff;
+}
+
+/* Mobile carousel optimizations */
 @media (max-width: 480px) {
-  .stopwatch-container {
-    padding: 1rem;
-    /* Ensure minimum padding while respecting safe areas */
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
-  }
-
-  /* Tab styles for mobile */
-  .tabs-container {
-    margin-bottom: 1.5rem;
-    padding: 3px;
-    /* Ensure tabs don't get cut off by safe areas */
-    margin-left: env(safe-area-inset-left);
-    margin-right: env(safe-area-inset-right);
-  }
-
-  .tab-btn {
-    padding: 0.6rem 0.8rem;
-    font-size: 0.9rem;
-  }
-
-  .tab-badge {
-    width: 18px;
-    height: 18px;
-    font-size: 0.6rem;
-    top: -1px;
-    right: -1px;
-  }
-
-  .time-display {
-    font-size: 2.5rem;
-    margin: 1rem 0;
-    min-width: 250px;
-  }
-
-  .controls {
-    gap: 0.5rem;
-  }
-
-  .control-btn {
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    min-width: 70px;
-  }
-
-  .submit-btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-    margin-top: 0.75rem;
-  }
-
-  .sessions-container {
-    margin-top: 1.5rem;
-  }
-
-  .sessions-title {
-    font-size: 1.1rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .sessions-list {
-    padding: 0.75rem;
-    max-height: 205px;
-  }
-
-  .session-item {
-    padding: 0.6rem 0.75rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .session-number {
-    font-size: 0.8rem;
-    min-width: 25px;
-  }
-
-  .session-duration {
-    font-size: 0.9rem;
-  }
-
-  .session-time {
-    font-size: 0.75rem;
-    min-width: 45px;
-  }
-
-  .total-time-container {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-  }
-
-  .total-time-display {
-    padding: 0.75rem;
-  }
-
-  .total-time-label {
-    font-size: 0.9rem;
-  }
-
-  .total-time-value {
-    font-size: 1.1rem;
-  }
-
-  .session-name-input {
-    padding: 0.6rem 0.8rem;
-    font-size: 0.9rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .saved-sessions-container {
-    margin-top: 1.5rem;
-  }
-
-  .saved-sessions-list {
-    padding: 0.75rem;
-    max-height: 300px;
-  }
-
-  .saved-session-item {
-    padding: 0.75rem;
-  }
-
-  .saved-session-name {
-    font-size: 1rem;
-  }
-
-  .saved-session-info {
+  .modal-nav-btn {
+    padding: 0.75rem 0.5rem;
     font-size: 0.8rem;
   }
 
-  .delete-btn {
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
-    min-width: 24px;
-    min-height: 24px;
+  .modal-carousel {
+    min-height: 350px;
+    max-height: 70vh;
   }
 
-  .saved-session-total {
-    font-size: 0.85rem;
-  }
-
-  .saved-session-date {
-    font-size: 0.75rem;
-  }
-
-  /* Empty state mobile styles */
-  .empty-state {
-    padding: 2rem 1rem;
-    min-height: 250px;
-  }
-
-  .empty-state-icon {
-    font-size: 3rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .empty-state-title {
-    font-size: 1.3rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .empty-state-description {
-    font-size: 0.9rem;
-    max-width: 250px;
-  }
-
-  /* Session summary mobile styles */
-  .session-summary {
-    margin-top: 1.5rem;
+  .modal-panel .modal-body {
     padding: 1rem;
+    overflow-y: auto;
   }
 
-  .session-summary-title {
+  .modal-carousel {
+    height: calc(85vh - 100px); /* Adjust for mobile */
+    min-height: 300px;
+  }
+
+  .modal-indicators {
+    padding: 0.75rem;
+  }
+
+  .modal-indicator {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Reduced motion support for carousel */
+@media (prefers-reduced-motion: reduce) {
+  .modal-carousel-track {
+    transition: none;
+  }
+
+  .modal-nav-btn {
+    transition: none;
+  }
+
+  .modal-indicator {
+    transition: none;
+  }
+}
+
+/* Mobile modal optimizations */
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .modal-content {
+    max-height: 90vh;
+    border-radius: 12px;
+  }
+
+  .modal-header {
+    padding: 1rem 1rem 0.75rem 1rem;
+  }
+
+  .modal-title {
     font-size: 1.1rem;
+  }
+
+  .modal-close-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+
+  .modal-body {
+    padding: 1rem;
+    max-height: calc(85vh - 100px); /* Adjust for mobile */
+  }
+
+  .modal-summary {
+    padding: 0.75rem;
     margin-bottom: 1rem;
   }
 
-  .session-summary-period {
-    padding: 0.75rem;
+  .modal-summary-item {
+    margin-bottom: 0.5rem;
   }
 
-  .session-summary-period-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+  .modal-summary-label {
+    font-size: 0.8rem;
   }
 
-  .session-summary-period-label {
+  .modal-summary-value {
     font-size: 0.9rem;
   }
 
-  .session-summary-period-total {
+  .modal-sessions-title {
     font-size: 1rem;
+    margin-bottom: 0.75rem;
   }
 
-  .session-summary-period-details {
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.8rem;
-  }
-}
-
-/* Landscape orientation adjustments for devices with safe areas */
-@media (orientation: landscape) and (max-height: 500px) {
-  .stopwatch-container {
-    padding-top: 0.5rem;
-    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
+  .modal-session-item {
+    padding: 0.6rem;
   }
 
-  .time-display {
-    margin: 1rem 0;
-    font-size: 2.5rem;
+  .modal-session-name {
+    font-size: 0.9rem;
   }
 
-  .controls {
-    margin: 1rem 0;
-    /* Ensure control buttons are accessible with safe areas */
-    margin-left: env(safe-area-inset-left);
-    margin-right: env(safe-area-inset-right);
+  .modal-session-total {
+    font-size: 0.85rem;
   }
 
-  .tabs-container {
-    margin-left: env(safe-area-inset-left);
-    margin-right: env(safe-area-inset-right);
+  .modal-session-details {
+    font-size: 0.75rem;
+  }
+
+  .modal-session-date {
+    font-size: 0.7rem;
   }
 }
 
-/* High contrast mode support */
+/* High contrast mode support for modal */
 @media (prefers-contrast: high) {
-  .tabs-container {
+  .modal-content {
     background: white;
     border: 2px solid #000;
   }
 
-  .tab-btn {
-    border: 1px solid #000;
-    color: #000;
-  }
-
-  .tab-btn.active {
+  .modal-close-btn {
     background: #000;
     color: #fff;
-    border-color: #fff;
-  }
-
-  .tab-badge {
-    background: #000;
-    color: #fff;
-    border: 1px solid #fff;
-  }
-
-  .tab-btn.active .tab-badge {
-    background: #fff;
-    color: #000;
-    border-color: #000;
-  }
-
-  .time-display {
-    background: white;
-    border: 2px solid #000;
-    color: #000;
-  }
-
-  .control-btn {
-    border: 2px solid #000;
-  }
-
-  .submit-btn {
-    background: #000;
     border: 2px solid #fff;
-    color: #fff;
   }
 
-  .submit-btn:disabled {
-    background: #666;
-    border-color: #999;
-    color: #ccc;
-  }
-
-  .sessions-list {
+  .modal-summary {
     background: white;
     border: 2px solid #000;
   }
 
-  .session-item {
+  .modal-session-item {
+    background: white;
     border: 1px solid #000;
-  }
-
-  .sessions-title {
-    color: #000;
-  }
-
-  .total-time-display {
-    background: #000;
-    border: 2px solid #fff;
-    color: #fff;
-  }
-
-  .total-time-container {
-    border-top-color: #000;
   }
 }
 
-/* Reduced motion support */
+/* Reduced motion support for modal */
 @media (prefers-reduced-motion: reduce) {
-  .tab-btn {
+  .modal-content {
+    animation: none;
+  }
+
+  .session-summary-period.clickable {
     transition: none;
   }
 
-  .tab-btn.active {
+  .session-summary-period.clickable:hover {
     transform: none;
   }
 
-  .control-btn {
+  .modal-close-btn {
     transition: none;
   }
 
-  .control-btn:hover {
-    transform: none;
-  }
-
-  .session-item {
-    transition: none;
-  }
-
-  .session-item:hover {
-    transform: none;
-  }
-
-  .submit-btn {
-    transition: none;
-  }
-
-  .submit-btn:hover:not(:disabled) {
+  .modal-close-btn:hover {
     transform: none;
   }
 }
@@ -801,9 +900,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e9ecef;
 }
 
 .session-summary-period-label {
@@ -832,4 +928,235 @@
 .session-summary-period-sessions,
 .session-summary-period-individual {
   flex: 1;
+}
+
+/* Session set detailed view styles */
+.modal-session-set {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-session-set:last-child {
+  margin-bottom: 0;
+}
+
+.modal-session-set-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: -0.75rem -1rem 0.75rem -1rem;
+  user-select: none;
+}
+
+.modal-session-set-header:hover {
+  background: rgba(0, 123, 255, 0.05);
+}
+
+.modal-session-set-header:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.modal-session-set-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-session-expand-icon {
+  font-size: 0.75rem;
+  color: #6c757d;
+  transition: transform 0.2s ease;
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+}
+
+.modal-session-expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.modal-session-set-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.modal-session-set-info .modal-session-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.modal-session-set-info .modal-session-date {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.modal-session-set-actions .modal-session-total {
+  font-family: "Courier New", monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #007bff;
+  background: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.modal-session-set .modal-session-details {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* Individual sessions within session sets */
+.modal-individual-sessions {
+  background: white;
+  border-radius: 8px;
+  padding: 0.75rem;
+  border: 1px solid #e9ecef;
+  animation: slideDown 0.2s ease-out;
+  transform-origin: top;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: scaleY(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.modal-individual-session {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.modal-individual-session:last-child {
+  margin-bottom: 0;
+}
+
+.modal-individual-session:hover {
+  background: #e9ecef;
+}
+
+.modal-session-number {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6c757d;
+  min-width: 25px;
+}
+
+.modal-session-duration {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+  flex: 1;
+  text-align: center;
+}
+
+.modal-session-time {
+  font-size: 0.75rem;
+  color: #6c757d;
+  min-width: 45px;
+  text-align: right;
+}
+
+/* Mobile optimizations for detailed session sets */
+@media (max-width: 480px) {
+  .modal-session-set {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .modal-session-set-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    margin: -0.75rem -0.75rem 0.5rem -0.75rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+  }
+
+  .modal-session-set-actions {
+    gap: 0.25rem;
+  }
+
+  .modal-session-set-info .modal-session-name {
+    font-size: 0.9rem;
+  }
+
+  .modal-session-set-info .modal-session-date {
+    font-size: 0.75rem;
+  }
+
+  .modal-session-set-actions .modal-session-total {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .modal-session-set .modal-session-details {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-individual-sessions {
+    padding: 0.5rem;
+  }
+
+  .modal-individual-session {
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .modal-session-number {
+    font-size: 0.75rem;
+    min-width: 20px;
+  }
+
+  .modal-session-duration {
+    font-size: 0.8rem;
+  }
+
+  .modal-session-time {
+    font-size: 0.7rem;
+    min-width: 40px;
+  }
+}
+
+/* Ensure content is visible */
+.modal-sessions-list {
+  display: block;
+  width: 100%;
+}
+
+.modal-session-set {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
