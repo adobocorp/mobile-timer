@@ -218,7 +218,7 @@
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 15px;
   padding: 1rem;
-  max-height: 400px;
+  max-height: 305px;
   overflow-y: auto;
 }
 
@@ -331,28 +331,6 @@
 
 .tab-btn:hover:not(.active) {
   background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-}
-
-.tab-badge {
-  background: #dc3545;
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 700;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 0.5rem;
-  position: absolute;
-  top: -2px;
-  right: -2px;
-}
-
-.tab-btn.active .tab-badge {
-  background: rgba(255, 255, 255, 0.9);
   color: #667eea;
 }
 

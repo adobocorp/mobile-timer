@@ -49,13 +49,13 @@ main {
     padding-right: calc(1rem + env(safe-area-inset-right));
     padding-bottom: 1rem;
   }
-  
+
   .app-header h1 {
     font-size: 2rem;
     /* Ensure header text is not too close to safe area edges */
     margin: 0 0 0.5rem 0;
   }
-  
+
   .app-header p {
     font-size: 0.9rem;
     margin: 0;
@@ -65,7 +65,9 @@ main {
 
   main {
     /* Adjust main content padding for mobile */
-    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 120px);
+    min-height: calc(
+      100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 120px
+    );
   }
 }
 
@@ -91,8 +93,49 @@ main {
   .app-header {
     background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   }
-  
+
   main {
     background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   }
+}
+
+/* Loading styles */
+.loading-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem;
+  box-sizing: border-box;
+  /* Ensure loading respects safe areas */
+  padding-left: max(2rem, env(safe-area-inset-left));
+  padding-right: max(2rem, env(safe-area-inset-right));
+  padding-top: max(2rem, env(safe-area-inset-top));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
+.loading-spinner {
+  font-size: 3rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  font-size: 1.2rem;
+  font-weight: 300;
+  margin: 0;
+  opacity: 0.9;
 }

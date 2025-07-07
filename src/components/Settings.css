@@ -1,0 +1,7 @@
+/* Settings Component Styles */
+.settings-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 1rem;
+}

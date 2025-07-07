@@ -3,6 +3,8 @@ import cn from "classnames";
 import { Preferences } from "@capacitor/preferences";
 import { Dialog } from "@capacitor/dialog";
 import { Clipboard } from "@capacitor/clipboard";
+import { useAuth } from "../contexts/AuthContext";
+import { Settings } from "./Settings";
 import "./Stopwatch.css";
 
 interface Session {
@@ -28,16 +30,26 @@ interface SessionSummaryPeriod {
 }
 
 export const Stopwatch: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [savedSessionSets, setSavedSessionSets] = useState<SavedSessionSet[]>([]);
-  const [activeTab, setActiveTab] = useState<'stopwatch' | 'saved'>('stopwatch');
-  const [selectedPeriod, setSelectedPeriod] = useState<SessionSummaryPeriod | null>(null);
+  const [savedSessionSets, setSavedSessionSets] = useState<SavedSessionSet[]>(
+    []
+  );
+  const [activeTab, setActiveTab] = useState<
+    "stopwatch" | "saved" | "settings"
+  >("stopwatch");
+  const [selectedPeriod, setSelectedPeriod] =
+    useState<SessionSummaryPeriod | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalActivePanel, setModalActivePanel] = useState<'summary' | 'sessions'>('summary');
+  const [modalActivePanel, setModalActivePanel] = useState<
+    "summary" | "sessions"
+  >("summary");
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [expandedSessionSets, setExpandedSessionSets] = useState<Set<string>>(new Set());
+  const [expandedSessionSets, setExpandedSessionSets] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -82,10 +94,12 @@ export const Stopwatch: React.FC = () => {
 
     // Show confirmation dialog
     const { value } = await Dialog.confirm({
-      title: 'Save Session',
-      message: `Save ${sessions.length} item${sessions.length !== 1 ? 's' : ''} with total duration of ${formatTime(calculateTotalTime())}?`,
-      okButtonTitle: 'Save',
-      cancelButtonTitle: 'Cancel'
+      title: "Save Session",
+      message: `Save ${sessions.length} item${
+        sessions.length !== 1 ? "s" : ""
+      } with total duration of ${formatTime(calculateTotalTime())}?`,
+      okButtonTitle: "Save",
+      cancelButtonTitle: "Cancel",
     });
 
     // If user cancelled, return early
@@ -93,7 +107,7 @@ export const Stopwatch: React.FC = () => {
 
     // Generate automatic session name based on date and time
     const now = new Date();
-    const sessionName = `Session ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {
+    const sessionName = `Session ${now.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     })}`;
@@ -114,36 +128,36 @@ export const Stopwatch: React.FC = () => {
       });
       setSavedSessionSets(updatedSets);
       setSessions([]);
-      
+
       // Switch to saved sessions tab to show the newly saved session
-      setActiveTab('saved');
-      
+      setActiveTab("saved");
+
       // Show success message
       await Dialog.alert({
-        title: 'Success',
-        message: 'Session saved successfully!',
-        buttonTitle: 'OK'
+        title: "Success",
+        message: "Session saved successfully!",
+        buttonTitle: "OK",
       });
     } catch (error) {
       console.error("Error saving session:", error);
       await Dialog.alert({
-        title: 'Error',
-        message: 'Error saving session. Please try again.',
-        buttonTitle: 'OK'
+        title: "Error",
+        message: "Error saving session. Please try again.",
+        buttonTitle: "OK",
       });
     }
   };
 
   const deleteSavedSessionSet = async (id: string) => {
-    const sessionToDelete = savedSessionSets.find(set => set.id === id);
+    const sessionToDelete = savedSessionSets.find((set) => set.id === id);
     if (!sessionToDelete) return;
 
     // Show confirmation dialog
     const { value } = await Dialog.confirm({
-      title: 'Delete Session',
+      title: "Delete Session",
       message: `Are you sure you want to delete "${sessionToDelete.name}"? This action cannot be undone.`,
-      okButtonTitle: 'Delete',
-      cancelButtonTitle: 'Cancel'
+      okButtonTitle: "Delete",
+      cancelButtonTitle: "Cancel",
     });
 
     // If user cancelled, return early
@@ -156,24 +170,24 @@ export const Stopwatch: React.FC = () => {
         value: JSON.stringify(updatedSets),
       });
       setSavedSessionSets(updatedSets);
-      
+
       // Switch to stopwatch tab if no saved sessions remain
-      if (updatedSets.length === 0 && activeTab === 'saved') {
-        setActiveTab('stopwatch');
+      if (updatedSets.length === 0 && activeTab === "saved") {
+        setActiveTab("stopwatch");
       }
 
       // Show success message
       await Dialog.alert({
-        title: 'Deleted',
-        message: 'Session deleted successfully.',
-        buttonTitle: 'OK'
+        title: "Deleted",
+        message: "Session deleted successfully.",
+        buttonTitle: "OK",
       });
     } catch (error) {
       console.error("Error deleting session set:", error);
       await Dialog.alert({
-        title: 'Error',
-        message: 'Error deleting session. Please try again.',
-        buttonTitle: 'OK'
+        title: "Error",
+        message: "Error deleting session. Please try again.",
+        buttonTitle: "OK",
       });
     }
   };
@@ -207,11 +221,11 @@ export const Stopwatch: React.FC = () => {
 
       // Determine if this is first half (1-15) or second half (16-end) of the month
       const isFirstHalf = day <= 15;
-      
+
       // Create period start and end dates
       let startDate: Date;
       let endDate: Date;
-      
+
       if (isFirstHalf) {
         // First half: 1st to 15th
         startDate = new Date(year, month, 1);
@@ -224,7 +238,7 @@ export const Stopwatch: React.FC = () => {
       }
 
       // Create a unique key for this period
-      const periodKey = `${year}-${month}-${isFirstHalf ? 'first' : 'second'}`;
+      const periodKey = `${year}-${month}-${isFirstHalf ? "first" : "second"}`;
 
       if (!periodsMap.has(periodKey)) {
         periodsMap.set(periodKey, {
@@ -248,18 +262,23 @@ export const Stopwatch: React.FC = () => {
     );
   }, [savedSessionSets]);
 
-  const formatPeriodLabel = useCallback((period: SessionSummaryPeriod): string => {
-    const startDate = period.startDate;
-    const endDate = period.endDate;
-    const monthName = startDate.toLocaleDateString('en-US', { month: 'long' });
-    const year = startDate.getFullYear();
+  const formatPeriodLabel = useCallback(
+    (period: SessionSummaryPeriod): string => {
+      const startDate = period.startDate;
+      const endDate = period.endDate;
+      const monthName = startDate.toLocaleDateString("en-US", {
+        month: "long",
+      });
+      const year = startDate.getFullYear();
 
-    if (startDate.getDate() === 1 && startDate.getDate() <= 15) {
-      return `${monthName} 1-15, ${year}`;
-    } else {
-      return `${monthName} 16-${endDate.getDate()}, ${year}`;
-    }
-  }, []);
+      if (startDate.getDate() === 1 && startDate.getDate() <= 15) {
+        return `${monthName} 1-15, ${year}`;
+      } else {
+        return `${monthName} 16-${endDate.getDate()}, ${year}`;
+      }
+    },
+    []
+  );
 
   const handlePeriodClick = (period: SessionSummaryPeriod) => {
     setSelectedPeriod(period);
@@ -269,12 +288,12 @@ export const Stopwatch: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedPeriod(null);
-    setModalActivePanel('summary');
+    setModalActivePanel("summary");
     setExpandedSessionSets(new Set()); // Reset expanded state when closing modal
   };
 
   const toggleSessionSetExpanded = (sessionSetId: string) => {
-    setExpandedSessionSets(prev => {
+    setExpandedSessionSets((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(sessionSetId)) {
         newSet.delete(sessionSetId);
@@ -286,14 +305,14 @@ export const Stopwatch: React.FC = () => {
   };
 
   const handleSwipeLeft = () => {
-    if (modalActivePanel === 'summary') {
-      setModalActivePanel('sessions');
+    if (modalActivePanel === "summary") {
+      setModalActivePanel("sessions");
     }
   };
 
   const handleSwipeRight = () => {
-    if (modalActivePanel === 'sessions') {
-      setModalActivePanel('summary');
+    if (modalActivePanel === "sessions") {
+      setModalActivePanel("summary");
     }
   };
 
@@ -304,11 +323,11 @@ export const Stopwatch: React.FC = () => {
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!touchStart) return;
-    
+
     const touch = e.changedTouches[0];
     const touchEnd = touch.clientX;
     const diff = touchStart - touchEnd;
-    
+
     // Minimum swipe distance
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
@@ -319,7 +338,7 @@ export const Stopwatch: React.FC = () => {
         handleSwipeRight();
       }
     }
-    
+
     setTouchStart(null);
   };
 
@@ -344,10 +363,11 @@ export const Stopwatch: React.FC = () => {
     // Only show confirmation if there are sessions or if the timer is running/has time
     if (sessions.length > 0 || time > 0) {
       const { value } = await Dialog.confirm({
-        title: 'Reset Stopwatch',
-        message: 'Are you sure you want to reset? This will clear all current sessions and the timer.',
-        okButtonTitle: 'Reset',
-        cancelButtonTitle: 'Cancel'
+        title: "Reset Stopwatch",
+        message:
+          "Are you sure you want to reset? This will clear all current sessions and the timer.",
+        okButtonTitle: "Reset",
+        cancelButtonTitle: "Cancel",
       });
 
       // If user cancelled, return early
@@ -366,18 +386,18 @@ export const Stopwatch: React.FC = () => {
     try {
       // Show loading state
       await Dialog.alert({
-        title: 'Generating Report',
-        message: 'Creating your histogram report...',
-        buttonTitle: 'OK'
+        title: "Generating Report",
+        message: "Creating your histogram report...",
+        buttonTitle: "OK",
       });
 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
       if (!ctx) {
         await Dialog.alert({
-          title: 'Error',
-          message: 'Unable to create histogram. Canvas not supported.',
-          buttonTitle: 'OK'
+          title: "Error",
+          message: "Unable to create histogram. Canvas not supported.",
+          buttonTitle: "OK",
         });
         return;
       }
@@ -391,27 +411,33 @@ export const Stopwatch: React.FC = () => {
 
       // Generate daily breakdown for the selected period
       const dailyData = new Map<string, number>();
-      
+
       // Initialize all days in the period with 0
       const startDate = new Date(selectedPeriod.startDate);
       const endDate = new Date(selectedPeriod.endDate);
-      
-      for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-        const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+      for (
+        let date = new Date(startDate);
+        date <= endDate;
+        date.setDate(date.getDate() + 1)
+      ) {
+        const dateKey = date.toISOString().split("T")[0]; // YYYY-MM-DD format
         dailyData.set(dateKey, 0);
       }
 
       // Aggregate session time by day
-      selectedPeriod.sessions.forEach(sessionSet => {
-        sessionSet.sessions.forEach(session => {
-          const sessionDate = session.timestamp.toISOString().split('T')[0];
+      selectedPeriod.sessions.forEach((sessionSet) => {
+        sessionSet.sessions.forEach((session) => {
+          const sessionDate = session.timestamp.toISOString().split("T")[0];
           const currentTime = dailyData.get(sessionDate) || 0;
           dailyData.set(sessionDate, currentTime + session.duration);
         });
       });
 
       // Convert to sorted array
-      const dailyArray = Array.from(dailyData.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+      const dailyArray = Array.from(dailyData.entries()).sort((a, b) =>
+        a[0].localeCompare(b[0])
+      );
       const maxTime = Math.max(...dailyArray.map(([, time]) => time), 1); // Ensure at least 1 to avoid division by 0
 
       // Chart dimensions
@@ -419,18 +445,18 @@ export const Stopwatch: React.FC = () => {
       const chartHeight = height - 2 * padding - 80; // Extra space for title and labels
 
       // Background
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
 
       // Title
-      ctx.fillStyle = '#2c3e50';
-      ctx.font = 'bold 24px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Daily Session Time', width / 2, 40);
+      ctx.fillStyle = "#2c3e50";
+      ctx.font = "bold 24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Daily Session Time", width / 2, 40);
 
       // Period subtitle
-      ctx.font = '16px Arial';
-      ctx.fillStyle = '#007bff';
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "#007bff";
       ctx.fillText(`${formatPeriodLabel(selectedPeriod)}`, width / 2, 70);
 
       // Draw bars
@@ -448,52 +474,58 @@ export const Stopwatch: React.FC = () => {
         if (timeMs > 0) {
           ctx.fillStyle = `rgba(0, 123, 255, ${0.3 + intensity * 0.7})`;
         } else {
-          ctx.fillStyle = '#f8f9fa';
+          ctx.fillStyle = "#f8f9fa";
         }
         ctx.fillRect(x, y, actualBarWidth, barHeight);
 
         // Bar border
-        ctx.strokeStyle = '#dee2e6';
+        ctx.strokeStyle = "#dee2e6";
         ctx.lineWidth = 1;
         ctx.strokeRect(x, y, actualBarWidth, barHeight);
 
         // Time label on bar (if bar is tall enough and there's time)
         if (barHeight > 25 && timeMs > 0) {
-          ctx.fillStyle = intensity > 0.5 ? '#ffffff' : '#2c3e50';
-          ctx.font = '10px Arial';
-          ctx.textAlign = 'center';
+          ctx.fillStyle = intensity > 0.5 ? "#ffffff" : "#2c3e50";
+          ctx.font = "10px Arial";
+          ctx.textAlign = "center";
           const timeText = formatTime(timeMs);
           ctx.fillText(timeText, x + actualBarWidth / 2, y + 15);
         }
 
         // Date label below bar
-        ctx.fillStyle = '#6c757d';
-        ctx.font = '9px Arial';
-        ctx.textAlign = 'center';
+        ctx.fillStyle = "#6c757d";
+        ctx.font = "9px Arial";
+        ctx.textAlign = "center";
         const date = new Date(dateStr);
         const dayLabel = date.getDate().toString();
         ctx.fillText(dayLabel, x + actualBarWidth / 2, height - padding + 15);
 
         // Month label (only on first day of month or first day)
         if (date.getDate() === 1 || index === 0) {
-          ctx.fillStyle = '#2c3e50';
-          ctx.font = 'bold 10px Arial';
-          const monthLabel = date.toLocaleDateString('en-US', { month: 'short' });
-          ctx.fillText(monthLabel, x + actualBarWidth / 2, height - padding + 30);
+          ctx.fillStyle = "#2c3e50";
+          ctx.font = "bold 10px Arial";
+          const monthLabel = date.toLocaleDateString("en-US", {
+            month: "short",
+          });
+          ctx.fillText(
+            monthLabel,
+            x + actualBarWidth / 2,
+            height - padding + 30
+          );
         }
       });
 
       // Y-axis labels
-      ctx.fillStyle = '#6c757d';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'right';
+      ctx.fillStyle = "#6c757d";
+      ctx.font = "12px Arial";
+      ctx.textAlign = "right";
       for (let i = 0; i <= 5; i++) {
         const value = (maxTime * i) / 5;
         const y = padding + 80 + chartHeight - (chartHeight * i) / 5;
         ctx.fillText(formatTime(value), padding - 10, y + 4);
-        
+
         // Grid lines
-        ctx.strokeStyle = '#f1f3f4';
+        ctx.strokeStyle = "#f1f3f4";
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(padding, y);
@@ -502,85 +534,97 @@ export const Stopwatch: React.FC = () => {
       }
 
       // Legend
-      ctx.fillStyle = '#6c757d';
-      ctx.font = '11px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Days of the month', width / 2, height - 15);
+      ctx.fillStyle = "#6c757d";
+      ctx.font = "11px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Days of the month", width / 2, height - 15);
 
       // Convert canvas to blob and copy to clipboard
       canvas.toBlob(async (blob) => {
         if (!blob) return;
-        
+
         try {
           // First try: Check if clipboard permissions are available
           if (navigator.clipboard && navigator.clipboard.write) {
             // Try to get permission first
             try {
-              const permission = await navigator.permissions.query({ name: 'clipboard-write' as PermissionName });
-              if (permission.state === 'granted' || permission.state === 'prompt') {
-                const item = new ClipboardItem({ 'image/png': blob });
+              const permission = await navigator.permissions.query({
+                name: "clipboard-write" as PermissionName,
+              });
+              if (
+                permission.state === "granted" ||
+                permission.state === "prompt"
+              ) {
+                const item = new ClipboardItem({ "image/png": blob });
                 await navigator.clipboard.write([item]);
-                
+
                 await Dialog.alert({
-                  title: 'Report Copied',
-                  message: 'Histogram has been copied to your clipboard as an image. You can now paste it in other apps.',
-                  buttonTitle: 'OK'
+                  title: "Report Copied",
+                  message:
+                    "Histogram has been copied to your clipboard as an image. You can now paste it in other apps.",
+                  buttonTitle: "OK",
                 });
                 return;
               }
             } catch (permissionError) {
-              console.log('Clipboard permission check failed:', permissionError);
+              console.log(
+                "Clipboard permission check failed:",
+                permissionError
+              );
             }
           }
-          
+
           // Fallback 1: Use Capacitor clipboard with base64
-          const dataUrl = canvas.toDataURL('image/png');
+          const dataUrl = canvas.toDataURL("image/png");
           await Clipboard.write({
-            string: dataUrl
+            string: dataUrl,
           });
-          
+
           await Dialog.alert({
-            title: 'Report Copied',
-            message: 'Histogram has been copied to your clipboard as image data. You can paste it in apps that support base64 images.',
-            buttonTitle: 'OK'
+            title: "Report Copied",
+            message:
+              "Histogram has been copied to your clipboard as image data. You can paste it in apps that support base64 images.",
+            buttonTitle: "OK",
           });
-          
         } catch (fallbackError) {
-          console.error('All clipboard methods failed:', fallbackError);
-          
+          console.error("All clipboard methods failed:", fallbackError);
+
           // Final fallback: Offer to download instead
           try {
             const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
+            const link = document.createElement("a");
             link.href = url;
-            link.download = `daily-sessions-${formatPeriodLabel(selectedPeriod).replace(/[^a-zA-Z0-9]/g, '-')}.png`;
+            link.download = `daily-sessions-${formatPeriodLabel(
+              selectedPeriod
+            ).replace(/[^a-zA-Z0-9]/g, "-")}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            
+
             await Dialog.alert({
-              title: 'Downloaded Instead',
-              message: 'Unable to copy to clipboard, so the histogram has been downloaded instead.',
-              buttonTitle: 'OK'
+              title: "Downloaded Instead",
+              message:
+                "Unable to copy to clipboard, so the histogram has been downloaded instead.",
+              buttonTitle: "OK",
             });
           } catch (downloadError) {
-            console.error('Download fallback failed:', downloadError);
+            console.error("Download fallback failed:", downloadError);
             await Dialog.alert({
-              title: 'Copy Failed',
-              message: 'Unable to copy histogram to clipboard or download. Please check your browser permissions.',
-              buttonTitle: 'OK'
+              title: "Copy Failed",
+              message:
+                "Unable to copy histogram to clipboard or download. Please check your browser permissions.",
+              buttonTitle: "OK",
             });
           }
         }
-      }, 'image/png');
-
+      }, "image/png");
     } catch (error) {
-      console.error('Error generating histogram:', error);
+      console.error("Error generating histogram:", error);
       await Dialog.alert({
-        title: 'Copy Error',
-        message: 'Failed to generate histogram. Please try again.',
-        buttonTitle: 'OK'
+        title: "Copy Error",
+        message: "Failed to generate histogram. Please try again.",
+        buttonTitle: "OK",
       });
     }
   }, [selectedPeriod, formatPeriodLabel, formatTime]);
@@ -589,29 +633,39 @@ export const Stopwatch: React.FC = () => {
     <div className="stopwatch-container">
       <div className="tabs-container">
         <button
-          className={`tab-btn ${activeTab === 'stopwatch' ? 'active' : ''}`}
-          onClick={() => setActiveTab('stopwatch')}
+          className={`tab-btn ${activeTab === "stopwatch" ? "active" : ""}`}
+          onClick={() => setActiveTab("stopwatch")}
           aria-label="Stopwatch tab"
         >
           Stopwatch
         </button>
         {savedSessionSets.length > 0 && (
           <button
-            className={`tab-btn ${activeTab === 'saved' ? 'active' : ''}`}
-            onClick={() => setActiveTab('saved')}
+            className={`tab-btn ${activeTab === "saved" ? "active" : ""}`}
+            onClick={() => setActiveTab("saved")}
             aria-label="Saved sessions tab"
           >
-            Saved Sessions
-            <span className="tab-badge">{savedSessionSets.length}</span>
+            Saved
           </button>
         )}
+        <button
+          className={`tab-btn ${activeTab === "settings" ? "active" : ""}`}
+          onClick={() => setActiveTab("settings")}
+          aria-label="Settings tab"
+        >
+          ⚙️
+        </button>
       </div>
 
-      {activeTab === 'stopwatch' && (
+      {activeTab === "stopwatch" && (
         <div className="tab-content">
           <div className="time-display">{formatTime(time)}</div>
 
-          <div className={cn("controls", { "controls-spacing": sessions.length === 0 })}>
+          <div
+            className={cn("controls", {
+              "controls-spacing": sessions.length === 0,
+            })}
+          >
             {!isRunning ? (
               <button
                 className="control-btn start-btn"
@@ -686,7 +740,7 @@ export const Stopwatch: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'saved' && (
+      {activeTab === "saved" && (
         <div className="tab-content">
           {savedSessionSets.length > 0 ? (
             <div className="saved-sessions-container">
@@ -694,7 +748,9 @@ export const Stopwatch: React.FC = () => {
                 {savedSessionSets.map((sessionSet) => (
                   <div key={sessionSet.id} className="saved-session-item">
                     <div className="saved-session-header">
-                      <span className="saved-session-name">{sessionSet.name}</span>
+                      <span className="saved-session-name">
+                        {sessionSet.name}
+                      </span>
                       <button
                         className="delete-btn"
                         onClick={() => deleteSavedSessionSet(sessionSet.id)}
@@ -705,7 +761,8 @@ export const Stopwatch: React.FC = () => {
                     </div>
                     <div className="saved-session-info">
                       <span className="saved-session-count">
-                        {sessionSet.sessions.length} session{sessionSet.sessions.length !== 1 ? 's' : ''}
+                        {sessionSet.sessions.length} session
+                        {sessionSet.sessions.length !== 1 ? "s" : ""}
                       </span>
                       <span className="saved-session-total">
                         {formatTime(sessionSet.totalTime)}
@@ -723,19 +780,21 @@ export const Stopwatch: React.FC = () => {
                 <h3 className="session-summary-title">Summary by Period</h3>
                 <div className="session-summary-periods">
                   {generateSessionSummary().map((period, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="session-summary-period clickable"
                       onClick={() => handlePeriodClick(period)}
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
+                        if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
                           handlePeriodClick(period);
                         }
                       }}
-                      aria-label={`View details for ${formatPeriodLabel(period)}`}
+                      aria-label={`View details for ${formatPeriodLabel(
+                        period
+                      )}`}
                     >
                       <div className="session-summary-period-header">
                         <span className="session-summary-period-label">
@@ -755,10 +814,17 @@ export const Stopwatch: React.FC = () => {
               <div className="empty-state-icon">📝</div>
               <h3 className="empty-state-title">No Saved Sessions</h3>
               <p className="empty-state-description">
-                Start timing sessions in the Stopwatch tab, then save them to see them here.
+                Start timing sessions in the Stopwatch tab, then save them to
+                see them here.
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === "settings" && (
+        <div className="tab-content">
+          <Settings />
         </div>
       )}
 
@@ -767,8 +833,10 @@ export const Stopwatch: React.FC = () => {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">{formatPeriodLabel(selectedPeriod)}</h3>
-              <button 
+              <h3 className="modal-title">
+                {formatPeriodLabel(selectedPeriod)}
+              </h3>
+              <button
                 className="modal-close-btn"
                 onClick={handleCloseModal}
                 aria-label="Close modal"
@@ -780,29 +848,35 @@ export const Stopwatch: React.FC = () => {
             {/* Modal Navigation */}
             <div className="modal-nav">
               <button
-                className={`modal-nav-btn ${modalActivePanel === 'summary' ? 'active' : ''}`}
-                onClick={() => setModalActivePanel('summary')}
+                className={`modal-nav-btn ${
+                  modalActivePanel === "summary" ? "active" : ""
+                }`}
+                onClick={() => setModalActivePanel("summary")}
               >
                 Summary
               </button>
               <button
-                className={`modal-nav-btn ${modalActivePanel === 'sessions' ? 'active' : ''}`}
-                onClick={() => setModalActivePanel('sessions')}
+                className={`modal-nav-btn ${
+                  modalActivePanel === "sessions" ? "active" : ""
+                }`}
+                onClick={() => setModalActivePanel("sessions")}
               >
                 Session Sets ({selectedPeriod.sessions.length})
               </button>
             </div>
 
             {/* Carousel Container */}
-            <div 
+            <div
               className="modal-carousel"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
-              <div 
+              <div
                 className="modal-carousel-track"
-                style={{ 
-                  transform: `translateX(${modalActivePanel === 'summary' ? '0%' : '-50%'})`,
+                style={{
+                  transform: `translateX(${
+                    modalActivePanel === "summary" ? "0%" : "-50%"
+                  })`,
                 }}
               >
                 {/* Panel 1: Summary */}
@@ -811,28 +885,40 @@ export const Stopwatch: React.FC = () => {
                     <div className="modal-summary">
                       <div className="modal-summary-item">
                         <span className="modal-summary-label">Total Time:</span>
-                        <span className="modal-summary-value">{formatTime(selectedPeriod.totalTime)}</span>
+                        <span className="modal-summary-value">
+                          {formatTime(selectedPeriod.totalTime)}
+                        </span>
                       </div>
                       <div className="modal-summary-item">
-                        <span className="modal-summary-label">Session Sets:</span>
-                        <span className="modal-summary-value">{selectedPeriod.sessions.length}</span>
+                        <span className="modal-summary-label">
+                          Session Sets:
+                        </span>
+                        <span className="modal-summary-value">
+                          {selectedPeriod.sessions.length}
+                        </span>
                       </div>
                       <div className="modal-summary-item">
-                        <span className="modal-summary-label">Individual Sessions:</span>
-                        <span className="modal-summary-value">{selectedPeriod.sessionCount}</span>
+                        <span className="modal-summary-label">
+                          Individual Sessions:
+                        </span>
+                        <span className="modal-summary-value">
+                          {selectedPeriod.sessionCount}
+                        </span>
                       </div>
                     </div>
 
                     {/* Copy Report Button */}
-                    <div className="modal-copy-report">
-                      <button
-                        className="copy-report-btn"
-                        onClick={copyHistogramReport}
-                        aria-label="Copy histogram report"
-                      >
-                        📊 Copy Report
-                      </button>
-                    </div>
+                    {isAuthenticated && (
+                      <div className="modal-copy-report">
+                        <button
+                          className="copy-report-btn"
+                          onClick={copyHistogramReport}
+                          aria-label="Copy histogram report"
+                        >
+                          📊 Copy Report
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -843,35 +929,51 @@ export const Stopwatch: React.FC = () => {
                       <h4 className="modal-sessions-title">Session Sets</h4>
                       <div className="modal-sessions-list">
                         {selectedPeriod.sessions.map((sessionSet) => (
-                          <div key={sessionSet.id} className="modal-session-set">
-                            <div 
+                          <div
+                            key={sessionSet.id}
+                            className="modal-session-set"
+                          >
+                            <div
                               className="modal-session-set-header"
-                              onClick={() => toggleSessionSetExpanded(sessionSet.id)}
+                              onClick={() =>
+                                toggleSessionSetExpanded(sessionSet.id)
+                              }
                               role="button"
                               tabIndex={0}
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
+                                if (e.key === "Enter" || e.key === " ") {
                                   toggleSessionSetExpanded(sessionSet.id);
                                 }
                               }}
                             >
                               <div className="modal-session-set-info">
-                                <span className="modal-session-name">{sessionSet.name}</span>
+                                <span className="modal-session-name">
+                                  {sessionSet.name}
+                                </span>
                                 <span className="modal-session-date">
                                   {sessionSet.createdAt.toLocaleDateString()}
                                 </span>
                               </div>
                               <div className="modal-session-set-actions">
-                                <span className="modal-session-total">{formatTime(sessionSet.totalTime)}</span>
-                                <span className={`modal-session-expand-icon ${expandedSessionSets.has(sessionSet.id) ? 'expanded' : ''}`}>
+                                <span className="modal-session-total">
+                                  {formatTime(sessionSet.totalTime)}
+                                </span>
+                                <span
+                                  className={`modal-session-expand-icon ${
+                                    expandedSessionSets.has(sessionSet.id)
+                                      ? "expanded"
+                                      : ""
+                                  }`}
+                                >
                                   ▼
                                 </span>
                               </div>
                             </div>
-                            
+
                             <div className="modal-session-details">
                               <span className="modal-session-count">
-                                {sessionSet.sessions.length} session{sessionSet.sessions.length !== 1 ? 's' : ''}
+                                {sessionSet.sessions.length} session
+                                {sessionSet.sessions.length !== 1 ? "s" : ""}
                               </span>
                             </div>
 
@@ -879,7 +981,10 @@ export const Stopwatch: React.FC = () => {
                             {expandedSessionSets.has(sessionSet.id) && (
                               <div className="modal-individual-sessions">
                                 {sessionSet.sessions.map((session, index) => (
-                                  <div key={session.id} className="modal-individual-session">
+                                  <div
+                                    key={session.id}
+                                    className="modal-individual-session"
+                                  >
                                     <span className="modal-session-number">
                                       #{sessionSet.sessions.length - index}
                                     </span>
@@ -887,10 +992,13 @@ export const Stopwatch: React.FC = () => {
                                       {formatTime(session.duration)}
                                     </span>
                                     <span className="modal-session-time">
-                                      {session.timestamp.toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
+                                      {session.timestamp.toLocaleTimeString(
+                                        [],
+                                        {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        }
+                                      )}
                                     </span>
                                   </div>
                                 ))}
@@ -907,8 +1015,16 @@ export const Stopwatch: React.FC = () => {
 
             {/* Swipe Indicator */}
             <div className="modal-indicators">
-              <div className={`modal-indicator ${modalActivePanel === 'summary' ? 'active' : ''}`}></div>
-              <div className={`modal-indicator ${modalActivePanel === 'sessions' ? 'active' : ''}`}></div>
+              <div
+                className={`modal-indicator ${
+                  modalActivePanel === "summary" ? "active" : ""
+                }`}
+              ></div>
+              <div
+                className={`modal-indicator ${
+                  modalActivePanel === "sessions" ? "active" : ""
+                }`}
+              ></div>
             </div>
           </div>
         </div>
