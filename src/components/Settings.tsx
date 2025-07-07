@@ -2,9 +2,30 @@ import React from "react";
 import "./Settings.css";
 import { useAuth } from "../contexts/AuthContext";
 import { Login } from "./Login";
+import { Dialog } from "@capacitor/dialog";
 
 export const Settings: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      const { value } = await Dialog.confirm({
+        title: "Confirm Logout",
+        message:
+          "Are you sure you want to log out? You will need to sign in again to access extra features.",
+        okButtonTitle: "Log Out",
+        cancelButtonTitle: "Cancel",
+      });
+
+      if (value) {
+        await logout();
+      }
+    } catch (error) {
+      console.error("Logout confirmation error:", error);
+      // Fallback to direct logout if dialog fails
+      await logout();
+    }
+  };
   return (
     <div>
       {isLoading ? (
@@ -18,29 +39,9 @@ export const Settings: React.FC = () => {
         </>
       ) : (
         <div className="settings-container">
-          <h2 className="settings-title">Settings</h2>
-          <div className="premium-features">
-            <h3>Premium Features</h3>
-            <div className="feature-list">
-              <div className="feature-item">
-                <span className="feature-icon">📋</span>
-                <span className="feature-text">
-                  Copy histogram reports to clipboard
-                </span>
-                <span className="feature-status enabled">✓ Enabled</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">💾</span>
-                <span className="feature-text">Unlimited saved sessions</span>
-                <span className="feature-status enabled">✓ Enabled</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">☁️</span>
-                <span className="feature-text">Cloud sync across devices</span>
-                <span className="feature-status enabled">✓ Enabled</span>
-              </div>
-            </div>
-          </div>
+          <button className="logout-btn" onClick={handleLogout}>
+            🚪 Log Out
+          </button>
         </div>
       )}
     </div>

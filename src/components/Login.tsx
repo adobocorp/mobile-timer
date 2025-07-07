@@ -45,7 +45,7 @@ export const Login: React.FC = () => {
     <div className="login-container">
       <div className="login-card">
         <button
-          className={`google-login-btn ${isLoading ? "loading" : ""}`}
+          className={`login-btn ${isLoading ? "loading" : ""}`}
           onClick={handleGoogleLogin}
           disabled={isLoading}
         >
@@ -53,7 +53,7 @@ export const Login: React.FC = () => {
             <span className="loading-spinner">⏳</span>
           ) : (
             <>
-              <span className="google-icon">🔍</span>
+              <span className="adobo-network-icon">🔍</span>
               Login with Adobo Network
             </>
           )}
