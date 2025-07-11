@@ -263,31 +263,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async (): Promise<void> => {
-    try {
-      // Confirm logout
-      const { value } = await Dialog.confirm({
-        title: "Logout",
-        message: "Are you sure you want to logout?",
-        okButtonTitle: "Logout",
-        cancelButtonTitle: "Cancel",
-      });
+    // Clear auth data
+    await Preferences.remove({ key: "authToken" });
+    await Preferences.remove({ key: "userData" });
 
-      if (!value) return;
+    setUser(null);
 
-      // Clear auth data
-      await Preferences.remove({ key: "authToken" });
-      await Preferences.remove({ key: "userData" });
-
-      setUser(null);
-
-      await Dialog.alert({
-        title: "Logged Out",
-        message: "You have been successfully logged out.",
-        buttonTitle: "OK",
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+    await Dialog.alert({
+      title: "Logged Out",
+      message: "You have been successfully logged out.",
+      buttonTitle: "OK",
+    });
   };
 
   const value: AuthContextType = {
