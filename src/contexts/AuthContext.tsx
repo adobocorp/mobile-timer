@@ -23,11 +23,6 @@ interface AuthContextType {
   isLoading: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (
-    username: string,
-    email: string,
-    password: string
-  ) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -173,95 +168,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (
-    username: string,
-    email: string,
-    password: string
-  ): Promise<boolean> => {
-    try {
-      // Validate input
-      if (username.length < 3) {
-        await Dialog.alert({
-          title: "Registration Failed",
-          message: "Username must be at least 3 characters long.",
-          buttonTitle: "OK",
-        });
-        return false;
-      }
-
-      if (password.length < 6) {
-        await Dialog.alert({
-          title: "Registration Failed",
-          message: "Password must be at least 6 characters long.",
-          buttonTitle: "OK",
-        });
-        return false;
-      }
-
-      if (!email.includes("@")) {
-        await Dialog.alert({
-          title: "Registration Failed",
-          message: "Please enter a valid email address.",
-          buttonTitle: "OK",
-        });
-        return false;
-      }
-
-      // Check existing users
-      const { value: usersData } = await Preferences.get({
-        key: "registeredUsers",
-      });
-      const users = usersData ? JSON.parse(usersData) : [];
-
-      // Check if username or email already exists
-      const existingUser = users.find(
-        (u: StoredUser) => u.username === username || u.email === email
-      );
-
-      if (existingUser) {
-        await Dialog.alert({
-          title: "Registration Failed",
-          message:
-            "Username or email already exists. Please choose different credentials.",
-          buttonTitle: "OK",
-        });
-        return false;
-      }
-
-      // Create new user
-      const newUser = {
-        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        username,
-        email,
-        password, // In real app, this would be hashed
-        createdAt: new Date().toISOString(),
-      };
-
-      // Save to "database"
-      users.push(newUser);
-      await Preferences.set({
-        key: "registeredUsers",
-        value: JSON.stringify(users),
-      });
-
-      await Dialog.alert({
-        title: "Registration Successful",
-        message: `Account created successfully! You can now log in with your credentials.`,
-        buttonTitle: "OK",
-      });
-
-      return true;
-    } catch (error) {
-      console.error("Registration error:", error);
-      await Dialog.alert({
-        title: "Registration Error",
-        message: "An error occurred during registration. Please try again.",
-        buttonTitle: "OK",
-      });
-      return false;
-    }
-  };
-
   const logout = async (): Promise<void> => {
     // Clear auth data
     await Preferences.remove({ key: "authToken" });
@@ -282,7 +188,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     logout,
-    register,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
