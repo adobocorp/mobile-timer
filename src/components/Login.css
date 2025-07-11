@@ -105,6 +105,41 @@
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
+/* Loading styles */
+.loading-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #4a148c;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.loading-spinner {
+  font-size: 3rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  font-size: 1.2rem;
+  font-weight: 300;
+  margin: 0;
+  opacity: 0.9;
+}
+
 /* Gentle pulse animation to draw attention */
 @keyframes gentle-pulse {
   0%,

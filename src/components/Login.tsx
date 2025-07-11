@@ -50,7 +50,10 @@ export const Login: React.FC = () => {
           disabled={isLoading}
         >
           {isLoading ? (
-            <span className="loading-spinner">⏳</span>
+            <div className="loading-container">
+              <div className="loading-spinner">⏳</div>
+              <p>Loading...</p>
+            </div>
           ) : (
             <>
               <span className="adobo-network-icon">🔍</span>
